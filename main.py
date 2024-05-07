@@ -1,3 +1,5 @@
+import random
+
 def word_search():
         word_list = []
         with open("Collins Scrabble Words (2019).txt","r") as f:
