@@ -48,10 +48,3 @@ def score_checker(m):
             
     return score
 
-
-
-
-
-
-
-

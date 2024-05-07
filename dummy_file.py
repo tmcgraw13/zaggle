@@ -1,0 +1,3 @@
+dummy = "tim"
+
+print(dummy)
