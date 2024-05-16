@@ -4,6 +4,23 @@
         <link rel="icon" type="image/x-icon" href="favicon.ico">
     </head> 
     <body>
+        <button id="myButton">Hit Python Backend</button>
         <script type="module" src="index.js"></script> 
+        <script>
+            document.getElementById("myButton").addEventListener("click", async () => {
+                try {
+                    const response = await fetch('http://localhost:5010/api', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const data = await response.json();
+                    alert(JSON.stringify(data)); // Display the response data in an alert
+                } catch (error) {
+                    alert('Error: ' + error); // Display error in an alert
+                }
+            });
+        </script>
     </body>
 </html>
