@@ -1,0 +1,14 @@
+# Use an official Python runtime as a parent image
+FROM python:3.10.13-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Expose port 8080
+EXPOSE 8080
+
+# Run server.py when the container launches
+CMD ["python", "server.py"]
