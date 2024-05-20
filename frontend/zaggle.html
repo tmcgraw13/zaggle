@@ -1,26 +1,24 @@
 <html>
-    <head>
-        <title>ZAGGLE!</title>
-        <link rel="icon" type="image/x-icon" href="favicon.ico">
-    </head> 
-    <body>
-        <button id="myButton">Hit Python Backend</button>
-        <script type="module" src="index.js"></script> 
-        <script>
-            document.getElementById("myButton").addEventListener("click", async () => {
-                try {
-                    const response = await fetch('http://localhost:8081/api', {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    const data = await response.json();
-                    alert(JSON.stringify(data)); // Display the response data in an alert
-                } catch (error) {
-                    alert('Error: ' + error); // Display error in an alert
-                }
-            });
-        </script>
-    </body>
+  <head>
+    <title>ZAGGLE!</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  </head>
+  <body>
+    <button id="myButton">Hit Python Backend</button>
+    <script>
+      // Check the environment variable to include the correct config file
+      const env = (function () {
+        // This function can be modified to dynamically get the environment if needed
+        return "development"; // Change to 'development' for development environment or 'production' when inside the hosting container
+      })();
+      const script = document.createElement("script");
+      script.src = `/config/${env}.js`;
+      document.head.appendChild(script);
+    </script>
+    <script type="module" src="index.js"></script>
+
+    <script>
+      
+    </script>
+  </body>
 </html>
