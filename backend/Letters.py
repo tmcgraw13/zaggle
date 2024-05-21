@@ -1,5 +1,3 @@
-from word_search import word_search
-
 def letter_tracker(abc_array):
     usable = abc_array[:7]
     abc_array = abc_array[7:]
