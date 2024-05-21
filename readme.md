@@ -1,5 +1,6 @@
 # Project README
-
+## ZAGGLE GAME DIAGRAM
+![alt text](game_diagram_zaggle.png)
 ## Frontend
 
 ### Getting Started with PixiJS
