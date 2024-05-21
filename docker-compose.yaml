@@ -4,16 +4,41 @@ services:
   backend:
     build: backend/.
     ports:
-      - "8081:8081"
+      - "8081:8081"  # This will make port 8081 accessible only to other Docker services within the same network
     volumes:
-      - ./backend:/app
+      - ./backend:/app  # Ensure the host directory path and container path are correct
     environment:
-      FLASK_ENV: development
-      FLASK_APP: main.py
+      FLASK_APP: main.py  # Ensure this entry point is correctly named and exists
+    networks:
+      - app-network  # This specifies the network the backend belongs to
 
-  http_server:
+  frontend:
     build: frontend/.
     ports:
-      - "8080:8080"
+      - "80:3000"  # Map port 3000 inside the container to port 80 on the host
     volumes:
-      - ./frontend:/app
+      - ./frontend:/app  # Map the frontend code to /app inside the container
+    environment:
+      - NODE_ENV=${NODE_ENV}  # Use environment variable to set
+    networks:
+      - app-network  # Connect to the app network
+    profiles:
+      - dev  # Run this service only in the development profile
+    command: npm run dev  # Command to run in development
+
+  frontend-prod:
+    build: frontend/.
+    ports:
+      - "80:3000"  # Map port 3000 inside the container to port 80 on the host
+    environment:
+      - NODE_ENV=production  # Set the node environment to production
+    networks:
+      - app-network  # Connect to the app network
+    profiles:
+      - prod  # Run this service only in the production profile
+    command: sh -c "npm run build && npm start"  # Run build and then start the production server
+
+networks:
+  app-network:
+    name: app-network  # Define the network name
+    driver: bridge  # Use the bridge network driver

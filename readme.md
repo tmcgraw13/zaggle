@@ -85,6 +85,11 @@ Python virtual environments allow developers to control software dependencies in
 
 
 ## Deployment Inside Digital Ocean Tips
+## SSH CLI COMMANDS
+```sh
+ssh root@zaggle.io
+```
+- then enter the password (ask @tmcgraw13)
 ## SSH Key Setup
 
 Follow these steps to ensure your SSH agent is running, your key is added, and the connection is verified.
@@ -131,4 +136,20 @@ After running this command, add your SSH key again:
 
 ```sh
 ssh-add ~/.ssh/id_rsa
+```
+
+
+
+### Running Docker Compose with Profiles
+
+#### For Development
+
+```bash
+docker-compose --profile dev up --build
+```
+
+#### For Production
+
+```bash
+NODE_ENV=production docker-compose --profile prod up --build
 ```

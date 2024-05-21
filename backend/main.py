@@ -50,7 +50,21 @@ class MainClass:
 # Flask constructor takes the name of 
 # current module (__name__) as argument.
 app = Flask(__name__)
-CORS(app)  # This will enable CORS for all routes
+CORS(app)  # Adjust to your actual setup
+
+
+#-----------------------------------------------------------#
+#                   INITIALIZATION                          #
+#-----------------------------------------------------------#
+def __init__(self):
+    self.generate = LetterGeneration()
+          
+# def main(self):
+    
+#     letters = self.generate.gen_n_letters(1000)
+#     my_word = input("enter word: ")
+#     word_search(my_word)
+#     letter_tracker(letters)
 
 # The route() function of the Flask class is a decorator, 
 # which tells the application which URL should call 
@@ -64,6 +78,13 @@ def hello_world():
 def api():
     response = {
         'message': 'Hello from the Python backend!'
+    }
+    return jsonify(response)
+
+@app.route('/7letters', methods=['GET'])
+def next7Letters():
+    response = {
+        'letters': ['a','b','c','d','e','f','g']
     }
     return jsonify(response)
 
