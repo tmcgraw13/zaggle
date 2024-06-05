@@ -28,11 +28,6 @@ class LetterGeneration:
                 bag_size = 100
                 tileset = self.scrabble_bag.copy()
 
-    def remove_used_letters(self, word, player_hand):
-            for character in word:
-                player_hand.remove(character)
-            return player_hand
-
     def give_player_letters(self,used_hand, hand_length):
         while len(used_hand) < hand_length: 
             if len(self.letters_sequence) == 0:
