@@ -1,6 +1,7 @@
 from word_search import word_search
 from Letters import letter_tracker
 from letter_generation import LetterGeneration
+from validator import validator
 
 
 # Importing flask module in the project is mandatory
@@ -23,6 +24,9 @@ class MainClass:
         my_word = input("enter word: ")
         word_search(my_word)
         letter_tracker(letters)
+        first_letters = letters[:7]
+        timeleft = 19
+        validator(timeleft, first_letters, my_word)
     
 
 
