@@ -75,20 +75,26 @@ window.onload = function()
         alert("Error: " + error); // Display error in an alert
         }
     });
-    var word_input_elem = document.getElementById("word_input")
-    word_input_elem.addEventListener("input", (event) =>{
-        onlyAlphabet(event.target.value)})
-    word_input_elem.focus()
+    document.onkeydown = function(e) {
+        var text_input = `${e.key}`
+        var word_input_elem = document.getElementById("word_input")
+        switch (text_input){
+            case 'Backspace':
+                word_input_elem.value = word_input_elem.value.slice(0,-1);
+            default:
+                onlyAlphabet(text_input) 
+        }
+        
+       // word_input_elem.addEventListener("input", (event) =>{
+        //onlyAlphabet(event.target.value)})
+    };
+    
     
 }
 
 function onlyAlphabet(inputVal) {
-    var patt=/^[tarwsdarzs]+$/; //replace with call to our input validator to make sure we only input letters from player hand
+    var patt=/^[a-z]+$/; //replace with call to our input validator to make sure we only input letters from player hand
     if(patt.test(inputVal)){
-        document.getElementById('word_input').value = inputVal;
-    }
-    else{
-        var txt = inputVal.slice(0, -1);
-        document.getElementById('word_input').value = txt;
+        document.getElementById('word_input').value += inputVal;
     }
 }

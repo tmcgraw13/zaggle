@@ -4,13 +4,11 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
   </head>
   <body>
-    <script src="require.js"></script>
     <script type="module" src="index.js"></script>
     <button id="myButton">Hit Python Backend</button>
    
     <div class="form-group">
-      <label class="form-text">word input here</label>
-      <input id="word_input" type="text" maxlength="50"/>
+      <input id="word_input" type="hidden" maxlength="50" />
    </div>
     <script>
       // Check the environment variable to include the correct config file
