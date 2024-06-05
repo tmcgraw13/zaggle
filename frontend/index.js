@@ -1,4 +1,5 @@
 import { Application, Assets, Container, Sprite } from './pixi.min.mjs';
+import serverUrl from './config/development.js';
 
 (async () =>
 {
@@ -57,25 +58,37 @@ import { Application, Assets, Container, Sprite } from './pixi.min.mjs';
     });
 })();
 
-window.onload = function() {
-    // Wait until the config script is loaded
-    if (window.config) {
-        const serverUrl = window.config.serverUrl;
-        document
-        .getElementById("myButton")
-        .addEventListener("click", async () => {
-          try {
-            const response = await fetch(`${serverUrl}/api`, {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            });
-            const data = await response.json();
-            alert(JSON.stringify(data)); // Display the response data in an alert
-          } catch (error) {
-            alert("Error: " + error); // Display error in an alert
-          }
+window.onload = function() 
+{
+    document.getElementById("myButton")
+    .addEventListener("click", async () => {
+        try {
+        const response = await fetch(`${serverUrl}/api`, {
+            method: "GET",
+            headers: {
+            "Content-Type": "application/json",
+            },
         });
+        const data = await response.json();
+        alert(JSON.stringify(data)); // Display the response data in an alert
+        } catch (error) {
+        alert("Error: " + error); // Display error in an alert
+        }
+    });
+    var word_input_elem = document.getElementById("word_input")
+    word_input_elem.addEventListener("input", (event) =>{
+        onlyAlphabet(event.target.value)})
+    word_input_elem.focus()
+    
+}
+
+function onlyAlphabet(inputVal) {
+    var patt=/^[tarwsdarzs]+$/; //replace with call to our input validator to make sure we only input letters from player hand
+    if(patt.test(inputVal)){
+        document.getElementById('word_input').value = inputVal;
     }
+    else{
+        var txt = inputVal.slice(0, -1);
+        document.getElementById('word_input').value = txt;
     }
+}
