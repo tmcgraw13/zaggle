@@ -1,5 +1,3 @@
-from score_checker import WordScore
-
 def word_search(self):
     word_list = []
     with open("Collins Scrabble Words (2019).txt","r") as f:
