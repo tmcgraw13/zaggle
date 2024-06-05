@@ -1,4 +1,4 @@
-def word_search():
+def word_search(self):
     word_list = []
     with open("Collins Scrabble Words (2019).txt","r") as f:
         word_list = f.readlines()[2:]
@@ -11,6 +11,7 @@ def word_search():
         my_word = input("Enter a word: ").upper()
         if my_word.isalpha():
             print(my_word in word_list)
+            self.score.lengthChecker(my_word)
+            return my_word
         else:
             print("Word must not contain numbers or special characters!")
-    return 

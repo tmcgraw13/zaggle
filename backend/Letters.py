@@ -1,6 +1,7 @@
 def letter_tracker(abc_array):
     usable = abc_array[:7]
     abc_array = abc_array[7:]
+    print(usable)
     my_word = input("enter word: ")
     #if input True in dictionary
     #return usable without letters used plus next sequence
@@ -12,14 +13,17 @@ def letter_tracker(abc_array):
     for c in my_word:
         if c not in usable:
             check = False
-            print ("Letter not available")
+            print ("Letter "+ c + " not available")
+            break
 
     #check input occurences of letter, compare to usable, input must be less than or equal to usable
     for c in my_word:
         if my_word.count(c) > usable.count(c):
             check = False
-            print ("Word not allowed")
+            print ("Letter " + c + " used multiple times")
             break
+
+    
 
     if check:
         for c in my_word:
@@ -27,8 +31,11 @@ def letter_tracker(abc_array):
             print (usable)
 
     #for length of input, pop next letter from array into usable
-    used = len(my_word)
+    if check:
+        used = len(my_word)
+    else:
+        used = 0 
+
     for i in range(0, used):
         usable.append(abc_array.pop(0))
     print (usable)
-    print (abc_array)
