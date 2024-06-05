@@ -40,8 +40,9 @@ class LetterGeneration:
         return player_hand, current_tileset
     
     def give_player_letters(self,used_hand, hand_length,):
-        if len(self.letter_sequence) < hand_length - len(used_hand):
-            self.gen_n_letters(hand_length)
+
         while len(used_hand) < hand_length: 
+            if len(self.letter_sequence) == 0:
+                self.gen_n_letters(hand_length)
             used_hand.append(self.letters_sequence.pop(0))
         return used_hand
