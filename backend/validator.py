@@ -1,5 +1,3 @@
-#edit notes: input outside class? fix my_word? true/false? score_word added
-
 #check timer, letters, word, and score word
 
 class Validator:
@@ -18,13 +16,14 @@ class Validator:
             if c not in player_hand:
                 check = False
                 print ("Letter "+ c + " not available")
-                break
+                return check
         #checks if user has input letters more times than available in hand
         for c in my_word:
             if my_word.count(c) > player_hand.count(c):
                 check = False
                 print ("Letter " + c + " used multiple times")
-                break
+                return check
+            
         return check
 
     def word_search(self, my_word):
@@ -35,7 +34,7 @@ class Validator:
             word_list = [x for x in word_list if (len(x) >= 3 and len(x) <= 7) ]
 
         if my_word.isalpha():
-            return (my_word in word_list)
+            return (my_word.upper() in word_list)
         else:
             print("Word must not contain numbers or special characters!")
             return False
