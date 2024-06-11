@@ -1,3 +1,5 @@
+#edit notes: input outside class? fix my_word? true/false? score_word added
+
 #check timer, letters, word, and score word
 
 class Validator:
@@ -8,62 +10,37 @@ class Validator:
         else:
             return False
 
-    def letter_tracker(self, abc_array):
-        usable = abc_array[:7]
-        abc_array = abc_array[7:]
-        print(usable)
-        my_word = input("enter word: ")
-        #if input True in dictionary
-        #return usable without letters used plus next sequence
-        #remove letters from usable and add next amount of letters equal to input length
-        #parse out letters from input, check if all available, remove those letters, add in the next sequence
-        #with the same amount of letters removed into the original sequence
-        #if input True:
+    def letter_tracker(self, player_hand, my_word):
+       
+       #checks if letters input by user are in playable hand
         check = True
         for c in my_word:
-            if c not in usable:
+            if c not in player_hand:
                 check = False
                 print ("Letter "+ c + " not available")
                 break
-        #check input occurences of letter, compare to usable, input must be less than or equal to usable
+        #checks if user has input letters more times than available in hand
         for c in my_word:
-            if my_word.count(c) > usable.count(c):
+            if my_word.count(c) > player_hand.count(c):
                 check = False
                 print ("Letter " + c + " used multiple times")
                 break
-        if check:
-            for c in my_word:
-                usable.remove(c)
-                print (usable)
-        #for length of input, pop next letter from array into usable
-        if check:
-            used = len(my_word)
-        else:
-            used = 0 
+        return check
 
-        for i in range(0, used):
-            usable.append(abc_array.pop(0))
-        print (usable)
-
-    def word_search(self):
+    def word_search(self, my_word):
         word_list = []
         with open("Collins Scrabble Words (2019).txt","r") as f:
             word_list = f.readlines()[2:]
             word_list = [x.rstrip("\n") for x in word_list]
             word_list = [x for x in word_list if (len(x) >= 3 and len(x) <= 7) ]
 
-        print(len(word_list))
+        if my_word.isalpha():
+            return (my_word in word_list)
+        else:
+            print("Word must not contain numbers or special characters!")
+            return False
 
-        while True:
-            my_word = input("Enter a word: ").upper()
-            if my_word.isalpha():
-                print(my_word in word_list)
-                self.length_checker(my_word)
-                return my_word
-            else:
-                print("Word must not contain numbers or special characters!")
-
-    def length_checker(self, word):
+    def score_word(self, word):
         score = 0
         if len(word) >= 8:
             score = 0
