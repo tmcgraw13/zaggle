@@ -1,6 +1,6 @@
-from word_search import word_search
-from Letters import letter_tracker
+import sys
 from letter_generation import LetterGeneration
+from validator import Validator
 
 
 # Importing flask module in the project is mandatory
@@ -15,14 +15,34 @@ class MainClass:
     #-----------------------------------------------------------#
     def __init__(self):
         self.generate = LetterGeneration()
+        self.validate = Validator()
         
 
     def main(self):
-        
-        letters = self.generate.gen_n_letters(1000)
-        my_word = input("enter word: ")
-        word_search(my_word)
-        letter_tracker(letters)
+        self.generate.gen_n_letters(1000)
+        letters = self.generate.letters_sequence
+        player_hand = letters[0:7]
+        i =0
+        while True:
+
+            print("Player Hand: " + str(player_hand))
+            my_word = input("enter word: ").lower()
+            if self.validate.letter_tracker(player_hand,my_word):
+                if self.validate.word_search(my_word):
+                    self.validate.score_word(my_word)
+                else: 
+                    print("Invalid word")
+                    continue
+            else:
+                print("Letters used not in player hand.")
+                continue
+
+            # Clean player hand and get new letters from sequence here
+            # just wiping hand for now, will break when we run out of letters
+            i+=7
+            player_hand = letters[i:i+7]
+
+         
     
 
 
@@ -55,4 +75,14 @@ if __name__ == '__main__':
     # run() method of Flask class runs the application 
     # on the local development server.
     #app.run()
-    app.run(debug=True, host='0.0.0.0', port=8081)
+
+    ###########
+    # UNCOMMENT BELOW FOR SERVER USAGE
+    ##############
+    # app.run(debug=True, host='0.0.0.0', port=8081)
+
+    ###############
+    # UNCOMMENT BELOW FOR LOCAL TEXT-BASED GAME TESTING
+    ##############
+    app = MainClass()
+    sys.exit(app.main())
