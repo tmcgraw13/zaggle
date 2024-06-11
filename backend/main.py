@@ -1,6 +1,5 @@
-from word_search import word_search
-from Letters import letter_tracker
 from letter_generation import LetterGeneration
+from validator import Validator
 
 
 # Importing flask module in the project is mandatory
@@ -15,14 +14,15 @@ class MainClass:
     #-----------------------------------------------------------#
     def __init__(self):
         self.generate = LetterGeneration()
+        self.validate = Validator()
         
 
     def main(self):
         
         letters = self.generate.gen_n_letters(1000)
         my_word = input("enter word: ")
-        word_search(my_word)
-        letter_tracker(letters)
+        self.validate.word_search(my_word)
+        self.validate.letter_tracker(letters)   
     
 
 
