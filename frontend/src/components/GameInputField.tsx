@@ -2,10 +2,11 @@ import { isAlphabetic } from "@/utils/isAlphabetic";
 import { useState } from "react";
 
 interface GameInputFieldProps {
+  playerHand: string;
   onSubmit: (input: string) => void;
 }
 
-const GameInputField: React.FC<GameInputFieldProps> = ({ onSubmit }) => {
+const GameInputField: React.FC<GameInputFieldProps> = ({ playerHand, onSubmit }) => {
   const [input, setInput] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,6 +43,10 @@ const GameInputField: React.FC<GameInputFieldProps> = ({ onSubmit }) => {
       >
         Submit
       </button>
+      <div>
+        <h3>Player Hand:</h3>
+        <p>{playerHand}</p>
+      </div>
     </form>
   );
 };
