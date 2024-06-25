@@ -9,20 +9,29 @@ class Validator:
             return False
 
     def letter_tracker(self, player_hand, my_word):
-       
-       #checks if letters input by user are in playable hand
+       #checks if letters input by user are in playable hand, includes wilds
         check = True
+        num_wildcards = player_hand.count("_")
         for c in my_word:
             if c not in player_hand:
-                check = False
-                print ("Letter "+ c + " not available")
-                return check
-        #checks if user has input letters more times than available in hand
+                if num_wildcards > 0:
+                    num_wildcards -= 1
+                    continue
+                else:
+                    check = False
+                    print ("Letter "+ c + " not available")
+                    return check
+        #checks if user has input letters more times than available in hand, includes wilds
+        num_wildcards = player_hand.count("_")
         for c in my_word:
             if my_word.count(c) > player_hand.count(c):
-                check = False
-                print ("Letter " + c + " used multiple times")
-                return check
+                if num_wildcards - my_word.count(c) >= 0:
+                    num_wildcards -= my_word.count(c)
+                    continue
+                else:
+                    check = False
+                    print ("Letter " + c + " used multiple times")
+                    return check
             
         return check
 
