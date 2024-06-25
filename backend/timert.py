@@ -15,7 +15,9 @@ class Timer:
         current_time = datetime.datetime.now()
         print("Start: " + str(self.start_time))
         print("Current: " + str(current_time))
-        self.time_left =  self.gametime - (current_time - self.start_time).total_seconds()
+        self.time_left = self.gametime - (current_time - self.start_time).total_seconds()
+
         if self.time_left <= 0:
             self.gameover = True
             print("BZZT! The coundown is at zero seconds!")
+            return self.gameover
