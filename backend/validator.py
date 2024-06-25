@@ -28,7 +28,7 @@ class Validator:
 
     def word_search(self, my_word):
         word_list = []
-        with open("Collins Scrabble Words (2019).txt","r") as f:
+        with open("backend\Collins Scrabble Words (2019).txt","r") as f:
             word_list = f.readlines()[2:]
             word_list = [x.rstrip("\n") for x in word_list]
             word_list = [x for x in word_list if (len(x) >= 3 and len(x) <= 7) ]
