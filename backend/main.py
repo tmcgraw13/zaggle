@@ -2,7 +2,7 @@ import sys
 from letter_generation import LetterGeneration
 from validator import Validator
 from timert import Timer
-
+from player import Player
 
 # Importing flask module in the project is mandatory
 # An object of Flask class is our WSGI application.
@@ -17,26 +17,32 @@ class MainClass:
     def __init__(self):
         self.generate = LetterGeneration()
         self.validate = Validator()
+        self.player = Player()
         self.timer = Timer()
         
 
     def main(self):
         self.generate.gen_n_letters(1000)
         letters = self.generate.letters_sequence
-        player_hand = letters[0:7]
-        i =0
+        self.player.hand = letters[0:7]
+        i =7
 
         self.timer.countdown()
         while not self.timer.gameover:
             
-            print("Player Hand: " + str(player_hand))
+            print("Player Hand: " + str(self.player.hand))
             my_word = input("enter word: ").lower()
             self.timer.countdown()
             if not self.timer.gameover:
 
-                if self.validate.letter_tracker(player_hand,my_word):
+                if self.validate.letter_tracker(self.player.hand,my_word):
                     if self.validate.word_search(my_word):
-                        self.validate.score_word(my_word)
+                        score = self.validate.score_word(my_word)
+                        self.player.add_score(score)
+                        self.player.clean_hand_after_play(my_word)
+                        i+=len(my_word)
+                        self.player.add_letters_to_hand(letters[i:i+len(my_word)])
+
                     else: 
                         print("Invalid word")
                         continue
@@ -47,8 +53,7 @@ class MainClass:
             
             # Clean player hand and get new letters from sequence here
             # just wiping hand for now, will break when we run out of letters
-            i+=7
-            player_hand = letters[i:i+7]
+        print("FINAL SCORE: %d" % self.player.score)  
 
          
     
