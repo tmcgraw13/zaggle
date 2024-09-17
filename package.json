@@ -1,0 +1,9 @@
+{
+    "name": "zaggle",
+    "version": "1.0.0",
+    "scripts": {
+      "docker:dev": "docker-compose --profile dev up --build",
+      "docker:prod": "NODE_ENV=production docker-compose --profile prod up --build"
+    }
+  }
+  
