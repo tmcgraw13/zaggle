@@ -18,7 +18,7 @@ class MainClass:
         self.generate = LetterGeneration()
         self.validate = Validator()
         self.timer = Timer()
-        
+
 
     def main(self):
         self.generate.gen_n_letters(1000)
