@@ -23,16 +23,19 @@ class Validator:
                     return check
         #checks if user has input letters more times than available in hand, includes wilds
         num_wildcards = player_hand.count("_")
-        for c in my_word:
+        unique_letters = ''.join(set(my_word))
+        print (unique_letters)
+        for c in unique_letters:
             if my_word.count(c) > player_hand.count(c):
-                if num_wildcards - my_word.count(c) >= 0:
-                    num_wildcards -= my_word.count(c)
+                wildcards_to_use = my_word.count(c) - player_hand.count(c)
+                if num_wildcards - wildcards_to_use >= 0:
+                    num_wildcards -= wildcards_to_use
                     continue
                 else:
                     check = False
                     print ("Letter " + c + " used multiple times")
                     return check
-            
+
         return check
 
     def word_search(self, my_word):
