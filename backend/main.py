@@ -9,6 +9,8 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 
+
+
 class MainClass:
     #-----------------------------------------------------------#
     #                   INITIALIZATION                          #
@@ -60,6 +62,7 @@ app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
 generate = LetterGeneration()
 validate = Validator()
+player = Player()
 i = 0 # initial index for hand
 
 # The route() function of the Flask class is a decorator, 
@@ -82,11 +85,12 @@ def start_game():
     global i
     generate.gen_n_letters(1000)
     letters = generate.letters_sequence
-    player_hand = letters[0:7]
+    player.set_score(0)
+    player.set_hand(letters[0:7])
     i = 7  # reset i to 7 after starting the game
     return jsonify({
         'message': 'Game started',
-        'player_hand': player_hand
+        'player_hand': player.get_hand()
     })
 
 @app.route('/api/play', methods=['POST'])
@@ -95,27 +99,31 @@ def play():
     letters = generate.letters_sequence
     data = request.json
     my_word = data.get('my_word', '').lower()
-    player_hand = data.get('player_hand', '')
+    player.set_hand(data.get('player_hand', ''))
 
-    if validate.letter_tracker(player_hand, my_word):
+
+    if validate.letter_tracker(player.hand,my_word):
         if validate.word_search(my_word):
             score = validate.score_word(my_word)
+            player.add_score(score)
+            player.clean_hand_after_play(my_word)
+            i+=len(my_word)
+            player.add_letters_to_hand(letters[i:i+len(my_word)])
+
             response = {
                 'message': 'Valid word',
-                'score': score
+                'score': player.get_score()
             }
         else:
             response = {'message': 'Invalid word'}
     else:
         response = {'message': 'Letters used not in player hand'}
     print(response)
-    # Update player hand
-    i += 7
-    player_hand = letters[i:i+7]
+    
 
     return jsonify({
         'response': response,
-        'player_hand': player_hand
+        'player_hand': player.get_hand()
     })
 
 # main driver function
@@ -128,5 +136,5 @@ if __name__ == '__main__':
     ###############
     # UNCOMMENT BELOW FOR LOCAL TEXT-BASED GAME TESTING
     ##############
-    # app = MainClass()
+    #app = MainClass()
     # sys.exit(app.main())
