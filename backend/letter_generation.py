@@ -11,7 +11,7 @@ class LetterGeneration:
         self.letters_sequence = []
 
     def gen_n_letters(self, n=500):
-        
+        self.letters_sequence = []
         tileset = self.scrabble_bag.copy()
 
         i = 0

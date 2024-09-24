@@ -13,6 +13,14 @@ class Player:
 
     def set_hand(self,letters):
         self.hand = letters
+    def get_hand(self):
+        return self.hand
+    
+    def set_score(self,score):
+        self.hand = score
+    def get_score(self):
+        return self.score
+    
     
     def clear_hand(self):
         self.hand = []
