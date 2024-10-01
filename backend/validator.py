@@ -24,7 +24,7 @@ class Validator:
         #checks if user has input letters more times than available in hand, includes wilds
         num_wildcards = player_hand.count("_")
         unique_letters = ''.join(set(my_word))
-        print (unique_letters)
+        
         for c in unique_letters:
             if my_word.count(c) > player_hand.count(c):
                 wildcards_to_use = my_word.count(c) - player_hand.count(c)
