@@ -5,6 +5,7 @@ import GameComponent from "@/components/GameComponent";
 import StartGameButton from "@/components/StartGameButton";
 import CountdownTimer from "@/components/CountdownTimer";
 import serverUrl from "@/utils/config";
+import MultiplayerGame from "@/components/MultiplayerGame";
 
 export default function GameDashboard() {
   const [gameStarted, setGameStarted] = useState<boolean>(false);
@@ -19,6 +20,7 @@ export default function GameDashboard() {
   return (
     <div>
       <h1 className="text-2xl mb-4">Welcome to the Game</h1>
+      <MultiplayerGame/>
       <p>Server URL: {serverUrl}</p>
       {!gameStarted && (
         <StartGameButton
