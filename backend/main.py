@@ -148,13 +148,15 @@ def on_join(data):
             games[game_code]['players'].append(player_name)
 
         join_room(game_code)
-        emit('player_joined', {'players': games[game_code]['players']}, room=game_code)
+        emit('player_joined', {'players': games[game_code]['players'], 'started': games[game_code]['started'] }, room=game_code)
 
     except Exception as e:
         emit('error', {'message': f"Exception: {str(e)}"})
 
 @socketio.on('start_game')
 def on_start_game(data):
+    print(data)
+    print(games)
     game_code = data['gameCode']
     if games[game_code]['leader'] == data['playerName']:
         games[game_code]['started'] = True
