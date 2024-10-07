@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/CountdownTimer.css'; // Ensure to create the CSS file with styles
+// Ensure to create the CSS file with styles
 
 const FULL_DASH_ARRAY = 283;
 const WARNING_THRESHOLD = 10;
@@ -19,36 +20,27 @@ const COLOR_CODES = {
   }
 };
 
-//change this to a variable to be editable in game settings
-const TIME_LIMIT = 30;
+const TIME_LIMIT = 20;
 
-const CountdownTimer = () => {
+const CountdownTimer = ({ startTime }) => {
   const [timePassed, setTimePassed] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
   const [remainingPathColor, setRemainingPathColor] = useState(COLOR_CODES.info.color);
-  const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
-    let timerInterval;
-
-    if (isActive) {
-      timerInterval = setInterval(() => {
-        setTimePassed((prev) => {
-          const newTimePassed = prev + 1;
-          const newTimeLeft = Math.max(TIME_LIMIT - newTimePassed, 0);
-          setTimeLeft(newTimeLeft);
-          setRemainingPathColor(getRemainingPathColor(newTimeLeft));
-          return newTimePassed;
-        });
-      }, 1000);
-    }
+    const timerInterval = setInterval(() => {
+      const now = new Date();
+      const start = new Date(startTime);
+      const diffInSeconds = Math.floor((now - start) / 1000);
+      const newTimePassed = diffInSeconds;
+      const newTimeLeft = Math.max(TIME_LIMIT - newTimePassed, 0); // Ensure it doesn't go below 0
+      setTimePassed(newTimePassed);
+      setTimeLeft(newTimeLeft);
+      setRemainingPathColor(getRemainingPathColor(newTimeLeft));
+    }, 1000);
 
     return () => clearInterval(timerInterval);
-  }, [isActive]);
-
-  useEffect(() => {
-    setIsActive(true); // Automatically start the timer
-  }, []);
+  }, [startTime]);
 
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
