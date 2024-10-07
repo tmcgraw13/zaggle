@@ -3,6 +3,7 @@
 import { useState } from "react";
 import GameComponent from "@/components/GameComponent";
 import StartGameButton from "@/components/StartGameButton";
+import CountdownTimer from "@/components/CountdownTimer";
 import serverUrl from "@/utils/config";
 
 export default function GameDashboard() {
@@ -24,7 +25,12 @@ export default function GameDashboard() {
           setPlayerHand={setPlayerHand}
         />
       )}
-      {gameStarted && <GameComponent playerHand={playerHand} setPlayerHand={setPlayerHand} />}
+      {gameStarted && (
+        <div>
+          <GameComponent playerHand={playerHand} setPlayerHand={setPlayerHand} />
+          <CountdownTimer onStart={handleGameStart} />
+        </div>
+      )}
     </div>
   );
 }
