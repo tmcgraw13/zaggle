@@ -1,40 +1,28 @@
-"use client"; // Add this at the top of your file
-
-import { useState } from "react";
-import GameComponent from "@/components/GameComponent";
-import StartGameButton from "@/components/StartGameButton";
-import CountdownTimer from "@/components/CountdownTimer";
+"use client";
 import serverUrl from "@/utils/config";
-import MultiplayerGame from "@/components/MultiplayerGame";
+import { useState } from "react";
+import CreateGame from "./CreateGame";
+import JoinGame from "./JoinGame";
+import ButtonStandard from "@/components/ButtonStandard";
 
 export default function GameDashboard() {
-  const [gameStarted, setGameStarted] = useState<boolean>(false);
-  const [playerHand, setPlayerHand] = useState<string>(''); // Initialize an empty player hand
-  const [startTime, setStartTime] = useState<Date | null>(null);
-
-  const handleGameStart = () => {
-    setGameStarted(true);
-    setStartTime(new Date()); // Capture the current date and time
-  };
+  const [showComponent, setShowComponent] = useState<"join" | null>(null);
 
   return (
     <div>
-      <h1 className="text-2xl mb-4">Welcome to the Game</h1>
-      <MultiplayerGame/>
-      <p>Server URL: {serverUrl}</p>
-      {!gameStarted && (
-        <StartGameButton
-          onGameStart={handleGameStart}
-          initialPlayerHand={playerHand}
-          setPlayerHand={setPlayerHand}
+      <div style={{ display: "inline-flex", alignItems: "center" }}>
+        <CreateGame />
+        <ButtonStandard
+          onButtonClick={() => setShowComponent("join")}
+          buttonName={"Join Game"}
         />
-      )}
-      {gameStarted && (
-        <div>
-          <GameComponent playerHand={playerHand} setPlayerHand={setPlayerHand} />
-          {startTime && <CountdownTimer startTime={startTime} />}
-        </div>
-      )}
+      </div>
+      <h1 className="text-2xl mb-4 text-center">
+        Welcome to the Game!
+      </h1>
+      <p className="text-center">Server URL: {serverUrl}</p>
+
+      <div className="mt-4">{showComponent === "join" && <JoinGame />}</div>
     </div>
   );
 }
