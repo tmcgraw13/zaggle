@@ -1,13 +1,14 @@
-import sys
 from letter_generation import LetterGeneration
 from validator import Validator
 from timert import Timer
-
+from player import Player
 
 # Importing flask module in the project is mandatory
 # An object of Flask class is our WSGI application.
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
+
+
 
 
 class MainClass:
@@ -17,26 +18,31 @@ class MainClass:
     def __init__(self):
         self.generate = LetterGeneration()
         self.validate = Validator()
+        self.player = Player()
         self.timer = Timer()
-
-
+        
     def main(self):
         self.generate.gen_n_letters(1000)
         letters = self.generate.letters_sequence
-        player_hand = letters[0:7]
-        i =0
+        self.player.hand = letters[0:7]
+        i =7
 
         self.timer.countdown()
         while not self.timer.gameover:
             
-            print("Player Hand: " + str(player_hand))
+            print("Player Hand: " + str(self.player.hand))
             my_word = input("enter word: ").lower()
             self.timer.countdown()
             if not self.timer.gameover:
 
-                if self.validate.letter_tracker(player_hand,my_word):
+                if self.validate.letter_tracker(self.player.hand,my_word):
                     if self.validate.word_search(my_word):
-                        self.validate.score_word(my_word)
+                        score = self.validate.score_word(my_word)
+                        self.player.add_score(score)
+                        self.player.clean_hand_after_play(my_word)
+                        i+=len(my_word)
+                        self.player.add_letters_to_hand(letters[i:i+len(my_word)])
+
                     else: 
                         print("Invalid word")
                         continue
@@ -47,18 +53,17 @@ class MainClass:
             
             # Clean player hand and get new letters from sequence here
             # just wiping hand for now, will break when we run out of letters
-            i+=7
-            player_hand = letters[i:i+7]
-
-         
-    
-
+        print("FINAL SCORE: %d" % self.player.score)  
 
 
 # Flask constructor takes the name of 
 # current module (__name__) as argument.
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
+generate = LetterGeneration()
+validate = Validator()
+player = Player()
+i = 0 # initial index for hand
 
 # The route() function of the Flask class is a decorator, 
 # which tells the application which URL should call 
@@ -75,22 +80,61 @@ def api():
     }
     return jsonify(response)
 
+@app.route('/api/start', methods=['GET'])
+def start_game():
+    global i
+    generate.gen_n_letters(1000)
+    letters = generate.letters_sequence
+    player.set_score(0)
+    player.set_hand(letters[0:7])
+    i = 7  # reset i to 7 after starting the game
+    return jsonify({
+        'message': 'Game started',
+        'player_hand': player.get_hand()
+    })
+
+@app.route('/api/play', methods=['POST'])
+def play():
+    global i
+    letters = generate.letters_sequence
+    data = request.json
+    my_word = data.get('my_word', '').lower()
+    player.set_hand(data.get('player_hand', ''))
+
+
+    if validate.letter_tracker(player.hand,my_word):
+        if validate.word_search(my_word):
+            score = validate.score_word(my_word)
+            player.add_score(score)
+            player.clean_hand_after_play(my_word)
+            i+=len(my_word)
+            player.add_letters_to_hand(letters[i:i+len(my_word)])
+
+            response = {
+                'message': 'Valid word',
+                'score': player.get_score()
+            }
+        else:
+            response = {'message': 'Invalid word'}
+    else:
+        response = {'message': 'Letters used not in player hand'}
+    print(response)
+    
+
+    return jsonify({
+        'response': response,
+        'player_hand': player.get_hand()
+    })
+
 # main driver function
 if __name__ == '__main__':
-    #instance = MainClass()
-    #instance.main()
-
-    # run() method of Flask class runs the application 
-    # on the local development server.
-    #app.run()
-
     ###########
     # UNCOMMENT BELOW FOR SERVER USAGE
     ##############
-    # app.run(debug=True, host='0.0.0.0', port=8081)
+    app.run(debug=True, host='0.0.0.0', port=8081)
 
     ###############
     # UNCOMMENT BELOW FOR LOCAL TEXT-BASED GAME TESTING
     ##############
-    app = MainClass()
-    sys.exit(app.main())
+    #app = MainClass()
+    # sys.exit(app.main())

@@ -9,26 +9,38 @@ class Validator:
             return False
 
     def letter_tracker(self, player_hand, my_word):
-       
-       #checks if letters input by user are in playable hand
+       #checks if letters input by user are in playable hand, includes wilds
         check = True
+        num_wildcards = player_hand.count("_")
         for c in my_word:
             if c not in player_hand:
-                check = False
-                print ("Letter "+ c + " not available")
-                return check
-        #checks if user has input letters more times than available in hand
-        for c in my_word:
+                if num_wildcards > 0:
+                    num_wildcards -= 1
+                    continue
+                else:
+                    check = False
+                    print ("Letter "+ c + " not available")
+                    return check
+        #checks if user has input letters more times than available in hand, includes wilds
+        num_wildcards = player_hand.count("_")
+        unique_letters = ''.join(set(my_word))
+        print (unique_letters)
+        for c in unique_letters:
             if my_word.count(c) > player_hand.count(c):
-                check = False
-                print ("Letter " + c + " used multiple times")
-                return check
-            
+                wildcards_to_use = my_word.count(c) - player_hand.count(c)
+                if num_wildcards - wildcards_to_use >= 0:
+                    num_wildcards -= wildcards_to_use
+                    continue
+                else:
+                    check = False
+                    print ("Letter " + c + " used multiple times")
+                    return check
+
         return check
 
     def word_search(self, my_word):
         word_list = []
-        with open("backend\Collins Scrabble Words (2019).txt","r") as f:
+        with open("Collins Scrabble Words (2019).txt","r") as f:
             word_list = f.readlines()[2:]
             word_list = [x.rstrip("\n") for x in word_list]
             word_list = [x for x in word_list if (len(x) >= 3 and len(x) <= 7) ]
