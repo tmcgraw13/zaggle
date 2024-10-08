@@ -3,6 +3,7 @@
 import FetchDataButton from "@/components/FetchDataButton";
 import PixiComponent from "@/components/PixiComponent";
 import PlayerGrid from "@/components/PlayerGrid";
+import CountdownTimer from "@/components/CountdownTimer";
 
 export default function Test() {
   return (
@@ -12,6 +13,8 @@ export default function Test() {
       <PixiComponent />
       <br />
       <PlayerGrid />
+      <br />
+      <CountdownTimer />
     </>
   );
 }

@@ -1,16 +1,19 @@
-"use client";
+"use client"; // Add this at the top of your file
 
 import { useState } from "react";
 import GameComponent from "@/components/GameComponent";
 import StartGameButton from "@/components/StartGameButton";
+import CountdownTimer from "@/components/CountdownTimer";
 import serverUrl from "@/utils/config";
 
 export default function GameDashboard() {
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [playerHand, setPlayerHand] = useState<string>(''); // Initialize an empty player hand
+  const [startTime, setStartTime] = useState<Date | null>(null);
 
   const handleGameStart = () => {
     setGameStarted(true);
+    setStartTime(new Date()); // Capture the current date and time
   };
 
   return (
@@ -24,7 +27,12 @@ export default function GameDashboard() {
           setPlayerHand={setPlayerHand}
         />
       )}
-      {gameStarted && <GameComponent playerHand={playerHand} setPlayerHand={setPlayerHand} />}
+      {gameStarted && (
+        <div>
+          <GameComponent playerHand={playerHand} setPlayerHand={setPlayerHand} />
+          {startTime && <CountdownTimer startTime={startTime} />}
+        </div>
+      )}
     </div>
   );
 }
