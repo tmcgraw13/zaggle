@@ -14,7 +14,7 @@ export default function Test() {
       <br />
       <PlayerGrid />
       <br />
-      <CountdownTimer />
+      <CountdownTimer startTime={undefined} />
     </>
   );
 }
