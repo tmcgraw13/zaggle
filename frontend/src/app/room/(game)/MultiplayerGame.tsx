@@ -5,7 +5,7 @@ import socket from "@/utils/socket";
 import CountdownTimer from "@/components/CountdownTimer";
 
 interface MultiplayerGameProps {
-  gameCode:string;
+  gameCode: string;
   userName: string;
 }
 
@@ -16,10 +16,9 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
   const [playerHand, setPlayerHand] = useState<string>(""); // Initialize an empty player hand
   const [startTime, setStartTime] = useState<Date | null>(null);
 
-
   const startGame = () => {
-    let playerName = userName
-    console.log(playerName, gameCode)
+    let playerName = userName;
+    console.log(playerName, gameCode);
     socket.emit("start_game", { gameCode, playerName });
   };
 
@@ -29,7 +28,7 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
 
   useEffect(() => {
     socket.on("player_joined", (data) => {
-      console.log(data)
+      console.log(data);
       setGameStarted(data.started);
       setPlayers(data.players);
       if (data.players[0] === userName) {
@@ -42,7 +41,7 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
     });
 
     socket.on("game_started", () => {
-      console.log("The game has started!!!")
+      console.log("The game has started!!!");
       setGameStarted(true);
       setStartTime(new Date()); // Capture the current date and time
     });
@@ -53,7 +52,7 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
 
     // Clean up the socket connection when the component unmounts
     return () => {
-      socket.off("connect")
+      socket.off("connect");
       socket.off("player_joined");
       socket.off("game_started");
       socket.off("error");
@@ -95,12 +94,14 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
           <h2>Game has started!</h2>
 
           {gameStarted && (
-            <GameComponent
-              playerHand={playerHand}
-              setPlayerHand={setPlayerHand}
-            />
+            <>
+              <GameComponent
+                playerHand={playerHand}
+                setPlayerHand={setPlayerHand}
+              />
+              {startTime && <CountdownTimer startTime={startTime} />}
+            </>
           )}
-          {startTime && <CountdownTimer startTime={startTime} />}
         </div>
       )}
     </div>
