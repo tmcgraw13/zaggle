@@ -17,7 +17,7 @@ class Player:
         return self.hand
     
     def set_score(self,score):
-        self.hand = score
+        self.score = score
     def get_score(self):
         return self.score
     
@@ -27,6 +27,7 @@ class Player:
     
     def clean_hand_after_play(self,word_played):
         self.word_history.append(word_played)
+        print(self.hand)
         for letter in word_played:
             if letter in self.hand:
                 self.hand.remove(letter)

@@ -64,6 +64,10 @@ Please follow these steps to set up the Python backend using a virtual environme
    ```bash
    pip install -r requirements.txt
    ```
+7. **Capture New Requirements**
+8. ```
+   pip freeze > requirements.txt
+   ```
 
 ### Managing the Python Environment
 

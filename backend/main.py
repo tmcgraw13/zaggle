@@ -8,7 +8,7 @@ from player import Player
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-
+from flask_socketio import SocketIO, join_room, emit 
 
 
 class MainClass:
@@ -64,6 +64,9 @@ generate = LetterGeneration()
 validate = Validator()
 player = Player()
 i = 0 # initial index for hand
+socketio = SocketIO(app, cors_allowed_origins="*")
+games = {}
+
 
 # The route() function of the Flask class is a decorator, 
 # which tells the application which URL should call 
@@ -126,12 +129,47 @@ def play():
         'player_hand': player.get_hand()
     })
 
+# ------------------------------------------------------ #
+#           WebSocket Routes - Flask-SocketIO            #
+# ------------------------------------------------------ #
+
+@socketio.on('join_game')
+def on_join(data):
+    try:
+        game_code = data['gameCode']
+        player_name = data['playerName']
+
+        # Check if the game code exists; if not, initialize it
+        if game_code not in games:
+            games[game_code] = {'players': [player_name], 'leader': player_name, 'started': False}
+        
+        # Prevent player duplicates
+        if player_name not in games[game_code]['players']:  
+            games[game_code]['players'].append(player_name)
+
+        join_room(game_code)
+        emit('player_joined', {'players': games[game_code]['players'], 'started': games[game_code]['started'] }, room=game_code)
+
+    except Exception as e:
+        emit('error', {'message': f"Exception: {str(e)}"})
+
+@socketio.on('start_game')
+def on_start_game(data):
+    print(data)
+    print(games)
+    game_code = data['gameCode']
+    if games[game_code]['leader'] == data['playerName']:
+        games[game_code]['started'] = True
+        emit('game_started', {'message': 'Game has started'}, room=game_code)
+    else:
+        emit('error', {'message': 'Only the leader can start the game'})
+
 # main driver function
 if __name__ == '__main__':
     ###########
     # UNCOMMENT BELOW FOR SERVER USAGE
     ##############
-    app.run(debug=True, host='0.0.0.0', port=8081)
+    socketio.run(app,debug=True, host='0.0.0.0', port=8081)
 
     ###############
     # UNCOMMENT BELOW FOR LOCAL TEXT-BASED GAME TESTING

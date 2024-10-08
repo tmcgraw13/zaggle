@@ -1,8 +1,8 @@
 "use client";
 
-import FetchDataButton from "@/components/FetchDataButton";
-import PixiComponent from "@/components/PixiComponent";
-import PlayerGrid from "@/components/PlayerGrid";
+import FetchDataButton from "@/app/test/FetchDataButton";
+import PixiComponent from "@/app/test/PixiComponent";
+import PlayerGrid from "@/app/test/PlayerGrid";
 import CountdownTimer from "@/components/CountdownTimer";
 
 export default function Test() {
@@ -14,7 +14,7 @@ export default function Test() {
       <br />
       <PlayerGrid />
       <br />
-      <CountdownTimer />
+      <CountdownTimer startTime={undefined} />
     </>
   );
 }
