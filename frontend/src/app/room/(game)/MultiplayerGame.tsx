@@ -26,6 +26,13 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
     return isLeader && players[0] === player;
   };
 
+  useEffect(()=>{
+    if(gameStarted){
+      const timeString = localStorage.getItem("startTime")
+      if(timeString) setStartTime(new Date(Date.parse(timeString)))
+    }
+  },[gameStarted])
+
   useEffect(() => {
     socket.on("player_joined", (data) => {
       console.log(data);
@@ -43,7 +50,8 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
     socket.on("game_started", () => {
       console.log("The game has started!!!");
       setGameStarted(true);
-      setStartTime(new Date()); // Capture the current date and time
+      handleSetStartTime(new Date())
+      //setStartTime(new Date()); // Capture the current date and time
     });
 
     socket.on("error", (data) => {
@@ -58,6 +66,12 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
       socket.off("error");
     };
   }, []);
+
+  // Save the username in localStorage
+  const handleSetStartTime = (timestamp: Date) => {
+    setStartTime(timestamp);
+    localStorage.setItem("startTime", timestamp.toString()); // Persist the username
+  };
 
   return (
     <div>
