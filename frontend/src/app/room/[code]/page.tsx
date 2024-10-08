@@ -36,18 +36,15 @@ export default function RoomCode({ params }: { params: { code: string } }) {
     if (typeof window !== "undefined") {
       const link = `${window.location.origin}/room/${roomCode}`; // Generate shareable link
       setRoomLink(link);
-
-      const storedUserName = localStorage.getItem("userName");
-      setUserName(storedUserName);
     }
   }, [roomCode]);
 
   useEffect(() => {
     // Check if both userName and roomLink are set before joining the game
-    if (userName && roomLink) {
+    if (userName && roomCode) {
       joinGame();
     }
-  }, [userName, roomLink]); // Run when userName or roomLink changes
+  }, [userName]); // Run when userName or roomLink changes
 
   const handleCopy = (textToCopy: string) => {
     navigator.clipboard
@@ -61,11 +58,18 @@ export default function RoomCode({ params }: { params: { code: string } }) {
       });
   };
 
+  // Save the username in localStorage
+  const handleSetUserName = (name: string) => {
+    setUserName(name);
+    localStorage.setItem("userName", name); // Persist the username
+    setIsModalOpen(false); // Close the modal after setting the username
+  };
+
   return (
     <>
       {isModalOpen && !userName && (
         <PlayerNameModal
-          setUserName={setUserName} // Pass setUserName function to the modal
+          setUserName={handleSetUserName} // Pass setUserName function to the modal
           closeModal={() => setIsModalOpen(false)} // Close modal function
         />
       )}
@@ -87,7 +91,9 @@ export default function RoomCode({ params }: { params: { code: string } }) {
             />
           </div>
           {copySuccess && <div>{copySuccess}</div>}
-          {userName && roomCode && <MultiplayerGame userName={userName} gameCode={roomCode} />}
+          {userName && roomCode && (
+            <MultiplayerGame userName={userName} gameCode={roomCode} />
+          )}
         </div>
       )}
     </>

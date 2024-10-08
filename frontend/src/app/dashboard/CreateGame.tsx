@@ -1,13 +1,13 @@
 import React from 'react';
 import { useRouter } from 'next/navigation'
-import { v4 as uuidv4 } from 'uuid';
 import ButtonStandard from '@/components/ButtonStandard';
+import { generateFourRandomLetters } from '@/utils/randomLetterGenerator';
 
 const CreateGame: React.FC = () => {
   const navigate = useRouter();
 
   const handleCreateGame = (): void => {
-    const roomCode: string = uuidv4(); // Generate unique room code
+    const roomCode: string = generateFourRandomLetters(); // Generate unique room code
     navigate.push(`/room/${roomCode}`); // Navigate to the new game room
   };
   
