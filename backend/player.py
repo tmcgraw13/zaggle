@@ -6,11 +6,17 @@ class Player:
 
     
 
-    def __init__(self): 
+    def __init__(self,username): 
+
+        self.username = username
         self.score = 0 
         self.word_history= []
         self.hand = []
+        self.seq_index = 0
 
+    def get_username(self):
+        return self.username
+    
     def set_hand(self,letters):
         self.hand = letters
     def get_hand(self):
@@ -20,6 +26,11 @@ class Player:
         self.score = score
     def get_score(self):
         return self.score
+    
+    def get_seq_index(self):
+        return self.seq_index
+    def set_seq_index(self,seq_index):
+        self.seq_index = seq_index
     
     
     def clear_hand(self):
@@ -36,6 +47,7 @@ class Player:
 
     def add_letters_to_hand(self,letters_to_add):
         self.hand+= letters_to_add
+        self.seq_index += len(letters_to_add)
 
     def add_score(self,score):
         self.score += score

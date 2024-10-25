@@ -2,7 +2,7 @@ from letter_generation import LetterGeneration
 from validator import Validator
 from timert import Timer
 from player import Player
-
+from game_data import GameData
 # Importing flask module in the project is mandatory
 # An object of Flask class is our WSGI application.
 from flask import Flask, jsonify, request
@@ -65,7 +65,7 @@ validate = Validator()
 player = Player()
 i = 0 # initial index for hand
 socketio = SocketIO(app, cors_allowed_origins="*")
-games = {}
+games = []
 
 
 # The route() function of the Flask class is a decorator, 
@@ -83,7 +83,7 @@ def api():
     }
     return jsonify(response)
 
-@app.route('/api/start', methods=['GET'])
+@app.route('/api/start', methods=['POST'])
 def start_game():
     global i
     generate.gen_n_letters(1000)
@@ -91,9 +91,30 @@ def start_game():
     player.set_score(0)
     player.set_hand(letters[0:7])
     i = 7  # reset i to 7 after starting the game
+
+    data = request.data
+    names = data["names"]
+    room_id = data["room_id"]
+    start_time = data["start_time"]
+    
+    #TODO
+    # set start time for the new game and initialize a task that should run when the timer expires
+    # the task should get the current player scores and word history and publish it to a results page
+
+    players = [Player(uname) for uname in names]
+    for p in players:
+        p.set_score(0)
+        p.set_hand(letters[0:7])
+        p.set_seq_index(7)
+
+    new_game = GameData(players,room_id,letters)
+    games.append(new_game)  
+
+    
     return jsonify({
         'message': 'Game started',
-        'player_hand': player.get_hand()
+        'player_hand': player.get_hand(),
+        'game_data':new_game
     })
 
 @app.route('/api/play', methods=['POST'])
