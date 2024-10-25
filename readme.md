@@ -3,7 +3,7 @@
 ![alt text](game_diagram_zaggle.png)
 ![alt text](zaggle_class.png)
 ## Frontend
-
+### [Google sheets tracking](https://docs.google.com/spreadsheets/d/1deUNmX3e9dHAxLaaXDsRY5MYcDtu5b-gI8qKmDXvWy0/edit?usp=sharing)
 ### Getting Started with PixiJS
 
 To get started with PixiJS, refer to the [PixiJS Getting Started Guide](https://pixijs.com/8.x/guides/basics/getting-started).
