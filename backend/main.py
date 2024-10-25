@@ -62,10 +62,11 @@ app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
 generate = LetterGeneration()
 validate = Validator()
-player = Player()
+player = Player("test")
 i = 0 # initial index for hand
 socketio = SocketIO(app, cors_allowed_origins="*")
-games = []
+games = {}
+all_game_data = []
 
 
 # The route() function of the Flask class is a decorator, 
@@ -108,7 +109,7 @@ def start_game():
         p.set_seq_index(7)
 
     new_game = GameData(players,room_id,letters)
-    games.append(new_game)  
+    all_game_data.append(new_game)  
 
     
     return jsonify({
