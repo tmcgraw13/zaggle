@@ -27,16 +27,20 @@ export const fetchData = async (): Promise<any> => {
 };
 
 /**
- * Fetch data from the backend API.
+ * Submit a word to the backend API for validation and scoring.
+ * @param {Array<string>} names the players playing the game at start time
+ * @param {string} roomId - The current player's hand.
+ * @param {string} startTime - The current player's hand.
  * @returns {Promise<any>} The response data from the API.
  */
-export const startGame = async (): Promise<any> => {
+export const startGame = async (names: Array<string>, roomCode: string, startTime: Date): Promise<any> => {
   try {
     const response = await fetch(`${serverUrl}/api/start`, {
-      method: "GET",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({ names: names, room_id: roomCode, start_time: startTime }),
     });
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);

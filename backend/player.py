@@ -14,6 +14,14 @@ class Player:
         self.hand = []
         self.seq_index = 0
 
+    def to_dict(self):
+        return {
+            'username': self.username,
+            'score': self.score,
+            'hand': self.hand,  # Ensure this is a list for JSON serialization
+            'word_history': self.word_history  # Also should be a list
+        }
+
     def get_username(self):
         return self.username
     

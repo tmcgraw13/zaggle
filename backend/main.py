@@ -89,11 +89,9 @@ def start_game():
     global i
     generate.gen_n_letters(1000)
     letters = generate.letters_sequence
-    player.set_score(0)
-    player.set_hand(letters[0:7])
     i = 7  # reset i to 7 after starting the game
-
-    data = request.data
+    initial_hand = letters[0:7]
+    data = request.json
     names = data["names"]
     room_id = data["room_id"]
     start_time = data["start_time"]
@@ -105,17 +103,17 @@ def start_game():
     players = [Player(uname) for uname in names]
     for p in players:
         p.set_score(0)
-        p.set_hand(letters[0:7])
+        p.set_hand(initial_hand)
         p.set_seq_index(7)
 
-    new_game = GameData(players,room_id,letters)
+    new_game = GameData(players,room_id,letters,start_time)
     all_game_data.append(new_game)  
 
     
     return jsonify({
         'message': 'Game started',
-        'player_hand': player.get_hand(),
-        'game_data':new_game
+        'player_hand': initial_hand,
+        'game_data':new_game.to_dict()
     })
 
 @app.route('/api/play', methods=['POST'])
@@ -178,13 +176,14 @@ def on_join(data):
 @socketio.on('start_game')
 def on_start_game(data):
     print(data)
-    print(games)
     game_code = data['gameCode']
     if games[game_code]['leader'] == data['playerName']:
         games[game_code]['started'] = True
         emit('game_started', {'message': 'Game has started'}, room=game_code)
     else:
         emit('error', {'message': 'Only the leader can start the game'})
+    print(games)
+
 
 # main driver function
 if __name__ == '__main__':

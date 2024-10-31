@@ -14,10 +14,12 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
   const [isLeader, setIsLeader] = useState(false);
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [playerHand, setPlayerHand] = useState<string>(""); // Initialize an empty player hand
-  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [startTime, setStartTime] = useState<Date>();
 
-  const startGame = () => {
+
+  const startGame = (data: any) => {
     let playerName = userName;
+    setPlayerHand(data.player_hand)
     console.log(playerName, gameCode);
     socket.emit("start_game", { gameCode, playerName });
   };
@@ -50,8 +52,6 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
     socket.on("game_started", () => {
       console.log("The game has started!!!");
       setGameStarted(true);
-      handleSetStartTime(new Date())
-      //setStartTime(new Date()); // Capture the current date and time
     });
 
     socket.on("error", (data) => {
@@ -65,13 +65,7 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
       socket.off("game_started");
       socket.off("error");
     };
-  }, []);
-
-  // Save the username in localStorage
-  const handleSetStartTime = (timestamp: Date) => {
-    setStartTime(timestamp);
-    localStorage.setItem("startTime", timestamp.toString()); // Persist the username
-  };
+  }, []);  
 
   return (
     <div>
@@ -81,8 +75,8 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
           {isLeader && (
             <StartGameButton
               onGameStart={startGame}
-              initialPlayerHand={playerHand}
-              setPlayerHand={setPlayerHand}
+              names={['test1',"test2"]}
+              roomCode={gameCode}
             />
           )}
           {players.length > 0 && (
