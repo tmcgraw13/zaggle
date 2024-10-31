@@ -22,15 +22,15 @@ const COLOR_CODES = {
 
 const TIME_LIMIT = 20;
 
-const CountdownTimer = ({ startTime }) => {
+const CountdownTimer = ({ startTime}:any) => {
   const [timePassed, setTimePassed] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
   const [remainingPathColor, setRemainingPathColor] = useState(COLOR_CODES.info.color);
 
   useEffect(() => {
     const timerInterval = setInterval(() => {
-      const now = new Date();
-      const start = new Date(startTime);
+      const now: any = new Date();
+      const start: any = new Date(startTime);
       const diffInSeconds = Math.floor((now - start) / 1000);
       const newTimePassed = diffInSeconds;
       const newTimeLeft = Math.max(TIME_LIMIT - newTimePassed, 0); // Ensure it doesn't go below 0
@@ -42,9 +42,9 @@ const CountdownTimer = ({ startTime }) => {
     return () => clearInterval(timerInterval);
   }, [startTime]);
 
-  const formatTime = (time) => {
+  const formatTime = (time:any) => {
     const minutes = Math.floor(time / 60);
-    let seconds = time % 60;
+    let seconds:any = time % 60;
 
     if (seconds < 10) {
       seconds = `0${seconds}`;
@@ -53,7 +53,7 @@ const CountdownTimer = ({ startTime }) => {
     return `${minutes}:${seconds}`;
   };
 
-  const getRemainingPathColor = (timeLeft) => {
+  const getRemainingPathColor = (timeLeft: any) => {
     if (timeLeft <= COLOR_CODES.alert.threshold) {
       return COLOR_CODES.alert.color;
     } else if (timeLeft <= COLOR_CODES.warning.threshold) {

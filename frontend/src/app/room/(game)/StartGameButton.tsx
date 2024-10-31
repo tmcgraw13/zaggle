@@ -2,29 +2,28 @@ import { useState } from "react";
 import { startGame } from "@/services/apiService";
 
 interface StartGameButtonProps {
-  onGameStart: () => void;
-  initialPlayerHand: string;
-  setPlayerHand: (hand: string) => void;
+  onGameStart: (data:any) => void;
+  names: Array<string>;
+  roomCode: string;
 }
 
 const StartGameButton: React.FC<StartGameButtonProps> = ({
   onGameStart,
-  initialPlayerHand,
-  setPlayerHand,
+  names,
+  roomCode
 }) => {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [playerHand, setInternalPlayerHand] =
-    useState<string>(initialPlayerHand);
+  const [startTime, setStartTime] = useState<Date>();
 
   const handleClick = async () => {
     try {
-      const result = await startGame();
+      var activateStartTime = new Date()
+      handleSetStartTime(activateStartTime);
+      const result = await startGame(names, roomCode, activateStartTime);
       setData(result);
       setError(null);
-      setInternalPlayerHand(result.player_hand); // Assuming the API returns the player hand
-      setPlayerHand(result.player_hand); // Update the player hand in the parent component
-      onGameStart();
+      onGameStart(result);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -34,6 +33,11 @@ const StartGameButton: React.FC<StartGameButtonProps> = ({
         alert("An unknown error occurred"); // Display error in an alert
       }
     }
+  };
+
+  const handleSetStartTime = (timestamp: Date) => {
+    setStartTime(timestamp);
+    localStorage.setItem("startTime", timestamp.toString()); 
   };
 
   return (
@@ -51,7 +55,7 @@ const StartGameButton: React.FC<StartGameButtonProps> = ({
           <pre>{JSON.stringify(data, null, 2)}</pre>
           <div>
             <h3>Player Hand:</h3>
-            <p>{playerHand}</p>
+            <p>{data.player_hand}</p>
           </div>
         </div>
       )}

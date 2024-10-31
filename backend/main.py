@@ -2,7 +2,7 @@ from letter_generation import LetterGeneration
 from validator import Validator
 from timert import Timer
 from player import Player
-
+from game_data import GameData
 # Importing flask module in the project is mandatory
 # An object of Flask class is our WSGI application.
 from flask import Flask, jsonify, request
@@ -62,10 +62,11 @@ app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
 generate = LetterGeneration()
 validate = Validator()
-player = Player()
+player = Player("test")
 i = 0 # initial index for hand
 socketio = SocketIO(app, cors_allowed_origins="*")
 games = {}
+all_game_data = []
 
 
 # The route() function of the Flask class is a decorator, 
@@ -83,17 +84,36 @@ def api():
     }
     return jsonify(response)
 
-@app.route('/api/start', methods=['GET'])
+@app.route('/api/start', methods=['POST'])
 def start_game():
     global i
     generate.gen_n_letters(1000)
     letters = generate.letters_sequence
-    player.set_score(0)
-    player.set_hand(letters[0:7])
     i = 7  # reset i to 7 after starting the game
+    initial_hand = letters[0:7]
+    data = request.json
+    names = data["names"]
+    room_id = data["room_id"]
+    start_time = data["start_time"]
+    
+    #TODO
+    # set start time for the new game and initialize a task that should run when the timer expires
+    # the task should get the current player scores and word history and publish it to a results page
+
+    players = [Player(uname) for uname in names]
+    for p in players:
+        p.set_score(0)
+        p.set_hand(initial_hand)
+        p.set_seq_index(7)
+
+    new_game = GameData(players,room_id,letters,start_time)
+    all_game_data.append(new_game)  
+
+    
     return jsonify({
         'message': 'Game started',
-        'player_hand': player.get_hand()
+        'player_hand': initial_hand,
+        'game_data':new_game.to_dict()
     })
 
 @app.route('/api/play', methods=['POST'])
@@ -156,13 +176,14 @@ def on_join(data):
 @socketio.on('start_game')
 def on_start_game(data):
     print(data)
-    print(games)
     game_code = data['gameCode']
     if games[game_code]['leader'] == data['playerName']:
         games[game_code]['started'] = True
         emit('game_started', {'message': 'Game has started'}, room=game_code)
     else:
         emit('error', {'message': 'Only the leader can start the game'})
+    print(games)
+
 
 # main driver function
 if __name__ == '__main__':

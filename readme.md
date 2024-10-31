@@ -60,9 +60,13 @@ Please follow these steps to set up the Python backend using a virtual environme
      ```
 
 6. **Install Requirements**  
-   Install the necessary packages from `requirements.txt`:
+   Install the necessary packages from `requirements.txt`: for python 3.10.13
    ```bash
    pip install -r requirements.txt
+   ```
+   or for Python 3.13.0
+   ```
+   python3 -m pip install -r requirements.txt
    ```
 7. **Capture New Requirements**
 8. ```
@@ -77,6 +81,27 @@ Please follow these steps to set up the Python backend using a virtual environme
   pip3 freeze > requirements.txt
   ```
 
+DEBUG PYTHON
+- use the following configuration for launch.json
+  ``` {
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        }
+    ]
+  }
+
+- Go to the main.py file - must run from this location or it wont work correctly
+- And then click on the run and debug window
+- click the green start button with the configuration
 ### Special Notes
 
 - **Using a Virtual Environment in VSCode**  
