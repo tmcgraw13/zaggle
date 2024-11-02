@@ -93,7 +93,7 @@ def start_game():
     initial_hand = letters[0:7]
     data = request.json
     names = data["names"]
-    room_id = data["room_id"]
+    room_id : str = data["room_id"]
     start_time = data["start_time"]
     
     #TODO
@@ -107,12 +107,12 @@ def start_game():
         p.set_seq_index(7)
 
     new_game = GameData(players,room_id,letters,start_time)
+    games[room_id] = new_game
     all_game_data.append(new_game)  
 
     
     return jsonify({
         'message': 'Game started',
-        'player_hand': initial_hand,
         'game_data':new_game.to_dict()
     })
 
@@ -156,19 +156,22 @@ def play():
 @socketio.on('join_game')
 def on_join(data):
     try:
-        game_code = data['gameCode']
-        player_name = data['playerName']
-
+        game_code: str = data['gameCode']
+        player_name: str = data['playerName']
+        
         # Check if the game code exists; if not, initialize it
         if game_code not in games:
-            games[game_code] = {'players': [player_name], 'leader': player_name, 'started': False}
-        
+            player: Player  = Player(player_name, True) 
+            game_data: GameData = GameData([player], game_code)
+            games[game_code] = game_data
+        game_lookup: GameData = games[game_code]
         # Prevent player duplicates
-        if player_name not in games[game_code]['players']:  
-            games[game_code]['players'].append(player_name)
+        found_player = next((x for x in game_lookup.players if x.username == player_name), None)
+        if found_player == None:  
+            game_lookup.players.append(player_name)
 
         join_room(game_code)
-        emit('player_joined', {'players': games[game_code]['players'], 'started': games[game_code]['started'] }, room=game_code)
+        emit('player_joined', game_lookup.get_players_to_dict())
 
     except Exception as e:
         emit('error', {'message': f"Exception: {str(e)}"})

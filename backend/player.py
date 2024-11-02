@@ -4,26 +4,29 @@
 
 class Player: 
 
-    
-
-    def __init__(self,username): 
+    def __init__(self,username, isLeader = False): 
 
         self.username = username
         self.score = 0 
         self.word_history= []
         self.hand = []
         self.seq_index = 0
+        self.isLeader: bool = isLeader
 
     def to_dict(self):
         return {
             'username': self.username,
             'score': self.score,
             'hand': self.hand,  # Ensure this is a list for JSON serialization
-            'word_history': self.word_history  # Also should be a list
+            'word_history': self.word_history,  # Also should be a list
+            'isLeader': self.isLeader
         }
 
     def get_username(self):
         return self.username
+    
+    def get_isLeader(self):
+        return self.isLeader
     
     def set_hand(self,letters):
         self.hand = letters
@@ -39,7 +42,6 @@ class Player:
         return self.seq_index
     def set_seq_index(self,seq_index):
         self.seq_index = seq_index
-    
     
     def clear_hand(self):
         self.hand = []
