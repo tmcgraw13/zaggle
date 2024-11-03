@@ -19,6 +19,8 @@ class GameData:
             'start_time': self.start_time
         }
 
+    def set_players(self,players):
+        self.players = players
     def get_players(self):
         return self.players
     def get_players_to_dict(self):
@@ -30,5 +32,7 @@ class GameData:
     def get_letter_seq(self):
         return self.letter_seq
     
+    def set_start_time(self,time):
+        self.start_time = time
     def get_start_time(self):
         return self.start_time

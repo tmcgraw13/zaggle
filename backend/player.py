@@ -4,7 +4,7 @@
 
 class Player: 
 
-    def __init__(self,username, isLeader = False): 
+    def __init__(self,username: str, isLeader = False): 
 
         self.username = username
         self.score = 0 

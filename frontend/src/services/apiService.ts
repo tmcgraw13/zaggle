@@ -33,14 +33,14 @@ export const fetchData = async (): Promise<any> => {
  * @param {string} startTime - The current player's hand.
  * @returns {Promise<any>} The response data from the API.
  */
-export const startGame = async (names: Array<string>, roomCode: string, startTime: Date): Promise<any> => {
+export const startGame = async ( roomCode: string, startTime: Date): Promise<any> => {
   try {
     const response = await fetch(`${serverUrl}/api/start`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ names: names, room_id: roomCode, start_time: startTime }),
+      body: JSON.stringify({ room_id: roomCode, start_time: startTime }),
     });
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);

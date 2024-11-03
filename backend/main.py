@@ -1,3 +1,4 @@
+from typing import List
 from letter_generation import LetterGeneration
 from validator import Validator
 from timert import Timer
@@ -92,28 +93,26 @@ def start_game():
     i = 7  # reset i to 7 after starting the game
     initial_hand = letters[0:7]
     data = request.json
-    names = data["names"]
     room_id : str = data["room_id"]
+    current_players: List[Player] = games[room_id].players
     start_time = data["start_time"]
-    
+
     #TODO
     # set start time for the new game and initialize a task that should run when the timer expires
     # the task should get the current player scores and word history and publish it to a results page
 
-    players = [Player(uname) for uname in names]
-    for p in players:
+    #players = [Player(uname) for uname in current_game_lookup.players]
+    for p in current_players:
         p.set_score(0)
         p.set_hand(initial_hand)
         p.set_seq_index(7)
+    game_obj = GameData(current_players,room_id,letters,start_time)
 
-    new_game = GameData(players,room_id,letters,start_time)
-    games[room_id] = new_game
-    all_game_data.append(new_game)  
-
+    games[room_id] = game_obj
+    all_game_data.append(game_obj)  
     
     return jsonify({
-        'message': 'Game started',
-        'game_data':new_game.to_dict()
+        'message': 'Game started: websocket event triggered'
     })
 
 @app.route('/api/play', methods=['POST'])
@@ -168,10 +167,11 @@ def on_join(data):
         # Prevent player duplicates
         found_player = next((x for x in game_lookup.players if x.username == player_name), None)
         if found_player == None:  
-            game_lookup.players.append(player_name)
+            new_player: Player = Player(player_name)
+            game_lookup.players.append(new_player)
 
         join_room(game_code)
-        emit('player_joined', game_lookup.get_players_to_dict())
+        emit('player_joined', game_lookup.to_dict(), room=game_code)
 
     except Exception as e:
         emit('error', {'message': f"Exception: {str(e)}"})
@@ -180,12 +180,9 @@ def on_join(data):
 def on_start_game(data):
     print(data)
     game_code = data['gameCode']
-    if games[game_code]['leader'] == data['playerName']:
-        games[game_code]['started'] = True
-        emit('game_started', {'message': 'Game has started'}, room=game_code)
-    else:
-        emit('error', {'message': 'Only the leader can start the game'})
-    print(games)
+    game_lookup: GameData = games[game_code]
+    print(games[game_code])
+    emit('game_started',game_lookup.to_dict(), room=game_code)
 
 
 # main driver function
