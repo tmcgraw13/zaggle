@@ -13,12 +13,28 @@ class Player:
         self.seq_index = 0
         self.isLeader: bool = isLeader
 
+    @classmethod
+    def from_dict(cls, data):
+        """
+        Creates a Player instance from a dictionary.
+        """
+        player = cls(data['username'], data.get('isLeader', False))
+        player.score = data.get('score', 0)
+        player.word_history = data.get('word_history', [])
+        player.hand = data.get('hand', [])
+        player.seq_index = data.get('seq_index', 0)
+        return player
+
     def to_dict(self):
+        """
+        Converts the Player instance to a dictionary for JSON serialization.
+        """
         return {
             'username': self.username,
             'score': self.score,
-            'hand': self.hand,  # Ensure this is a list for JSON serialization
-            'word_history': self.word_history,  # Also should be a list
+            'hand': self.hand,
+            'word_history': self.word_history,
+            'seq_index': self.seq_index,
             'isLeader': self.isLeader
         }
 

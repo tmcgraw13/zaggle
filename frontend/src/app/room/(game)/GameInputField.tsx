@@ -2,7 +2,7 @@ import { isAlphabetic } from "@/utils/isAlphabetic";
 import { useState } from "react";
 
 interface GameInputFieldProps {
-  playerHand: string;
+  playerHand: string[];
   onSubmit: (input: string) => void;
 }
 

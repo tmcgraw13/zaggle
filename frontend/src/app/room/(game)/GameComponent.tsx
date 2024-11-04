@@ -2,22 +2,22 @@ import { useState } from "react";
 import GameInputField from "./GameInputField";
 import GameInputList from "./GameInputList";
 import { playWord } from "@/services/apiService";
+import { Player } from "@/models/player";
 
 interface GameComponentProps {
-  playerHand: string;
-  setPlayerHand: (hand: string) => void;
+  player: Player;
+  gameCode: string;
 }
 
-const GameComponent: React.FC<GameComponentProps> = ({ playerHand, setPlayerHand }) => {
+const GameComponent: React.FC<GameComponentProps> = ({ player, gameCode }) => {
   const [submittedInputs, setSubmittedInputs] = useState<string[]>([]);
   const [response, setResponse] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleInputSubmit = async (input: string) => {
     try {
-      const result = await playWord(input, playerHand);
+      const result = await playWord(input, player, gameCode);
       setResponse(result.response);
-      setPlayerHand(result.player_hand);
       setSubmittedInputs((prevInputs) => [...prevInputs, input]);
       setError(null);
     } catch (err) {
@@ -31,7 +31,7 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerHand, setPlayerHand
 
   return (
     <div>
-      <GameInputField onSubmit={handleInputSubmit} playerHand={playerHand} />
+      <GameInputField onSubmit={handleInputSubmit} playerHand={player.hand} />
       {response && (
         <div>
           <p>{response.message}</p>

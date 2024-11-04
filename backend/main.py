@@ -63,8 +63,6 @@ app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
 generate = LetterGeneration()
 validate = Validator()
-player = Player("test")
-i = 0 # initial index for hand
 socketio = SocketIO(app, cors_allowed_origins="*")
 games = {}
 all_game_data = []
@@ -87,10 +85,8 @@ def api():
 
 @app.route('/api/start', methods=['POST'])
 def start_game():
-    global i
     generate.gen_n_letters(1000)
     letters = generate.letters_sequence
-    i = 7  # reset i to 7 after starting the game
     initial_hand = letters[0:7]
     data = request.json
     room_id : str = data["room_id"]
@@ -117,35 +113,33 @@ def start_game():
 
 @app.route('/api/play', methods=['POST'])
 def play():
-    global i
-    letters = generate.letters_sequence
     data = request.json
+    game_data: GameData = games[data["game_code"]]
+    player = Player.from_dict(data["player"])
     my_word = data.get('my_word', '').lower()
-    player.set_hand(data.get('player_hand', ''))
+    i = player.seq_index
+    player_hand = player.hand
 
-
-    if validate.letter_tracker(player.hand,my_word):
+    if validate.letter_tracker(player_hand,my_word):
         if validate.word_search(my_word):
             score = validate.score_word(my_word)
             player.add_score(score)
             player.clean_hand_after_play(my_word)
             i+=len(my_word)
-            player.add_letters_to_hand(letters[i:i+len(my_word)])
+            player.set_seq_index(i)
+            player.add_letters_to_hand(game_data.letter_seq[i:i+len(my_word)])
 
-            response = {
-                'message': 'Valid word',
-                'score': player.get_score()
-            }
+            message = 'Valid word'
         else:
-            response = {'message': 'Invalid word'}
+            message = 'Invalid word'
     else:
-        response = {'message': 'Letters used not in player hand'}
-    print(response)
+        message = 'Letters used not in player hand'
+    print(message)
     
 
     return jsonify({
-        'response': response,
-        'player_hand': player.get_hand()
+        'message': message,
+        'player': player
     })
 
 # ------------------------------------------------------ #

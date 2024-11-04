@@ -3,17 +3,11 @@ import GameComponent from "./GameComponent";
 import StartGameButton from "./StartGameButton";
 import socket from "@/utils/socket";
 import CountdownTimer from "@/components/CountdownTimer";
+import { Player } from "@/models/player";
 
 interface MultiplayerGameProps {
   gameCode: string;
   userName: string;
-}
-interface Player {
-  username: string;
-  score: number;
-  hand: string[]; // Assuming hand is an array of strings
-  word_history: string[]; // Assuming word_history is an array of strings
-  isLeader: boolean;
 }
 
 interface GameData {
@@ -33,8 +27,6 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
     word_history: [],
     isLeader: false,
   });
-  const [playerHand, setPlayerHand] = useState<string>("");
-  const [startTime, setStartTime] = useState<Date>();
 
 
   const handlePlayerJoined = (data: any) => {
@@ -47,22 +39,6 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
       }
     }
   };
-
-  const updatePlayerProperty = (property: keyof Player, value: any) => {
-    if (player) {
-      setPlayer((prevPlayer: Player) => ({
-        ...prevPlayer,
-        [property]: value,
-      }));
-    }
-  };
-
-  useEffect(() => {
-    if (startTime) {
-      const timeString = localStorage.getItem("startTime");
-      if (timeString) setStartTime(new Date(Date.parse(timeString)));
-    }
-  }, [startTime]);
 
   useEffect(() => {
     socket.on("player_joined", handlePlayerJoined);
@@ -78,7 +54,6 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
         }
       }
       console.log("The game has started!!!");
-      //setStartTime(true);
     });
     socket.on("error", (data) => {
       alert(data.message);
@@ -126,8 +101,8 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
           {gameData.start_time && (
             <>
               <GameComponent
-                playerHand={player.hand}
-                setPlayerHand={setPlayerHand}
+                player={player}
+                gameCode={gameCode}
               />
               {gameData.start_time && <CountdownTimer startTime={gameData.start_time} />}
             </>
