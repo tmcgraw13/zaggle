@@ -1,29 +1,28 @@
 import { useState } from "react";
 import { startGame } from "@/services/apiService";
+import socket from "@/utils/socket";
 
 interface StartGameButtonProps {
-  onGameStart: (data:any) => void;
-  names: Array<string>;
   roomCode: string;
 }
 
 const StartGameButton: React.FC<StartGameButtonProps> = ({
-  onGameStart,
-  names,
   roomCode
 }) => {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [startTime, setStartTime] = useState<Date>();
+
+  const startGameWebSocket = () => {
+    socket.emit("start_game", { 'gameCode':roomCode });
+  };
 
   const handleClick = async () => {
     try {
       var activateStartTime = new Date()
       handleSetStartTime(activateStartTime);
-      const result = await startGame(names, roomCode, activateStartTime);
+      const result = await startGame(roomCode, activateStartTime);
       setData(result);
-      setError(null);
-      onGameStart(result);
+      startGameWebSocket();
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -36,7 +35,6 @@ const StartGameButton: React.FC<StartGameButtonProps> = ({
   };
 
   const handleSetStartTime = (timestamp: Date) => {
-    setStartTime(timestamp);
     localStorage.setItem("startTime", timestamp.toString()); 
   };
 

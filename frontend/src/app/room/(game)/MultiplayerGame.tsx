@@ -3,94 +3,89 @@ import GameComponent from "./GameComponent";
 import StartGameButton from "./StartGameButton";
 import socket from "@/utils/socket";
 import CountdownTimer from "@/components/CountdownTimer";
+import { Player } from "@/models/player";
 
 interface MultiplayerGameProps {
   gameCode: string;
   userName: string;
 }
 
+interface GameData {
+  players: Player[];
+  room_id: string;
+  letter_seq: string[];
+  start_time: string;
+}
+
 function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
-  const [players, setPlayers] = useState([]);
-  const [isLeader, setIsLeader] = useState(false);
-  const [gameStarted, setGameStarted] = useState<boolean>(false);
-  const [playerHand, setPlayerHand] = useState<string>(""); // Initialize an empty player hand
-  const [startTime, setStartTime] = useState<Date>();
+  const [players, setPlayers] = useState<Player[]>([]); // Ensure initial value is an array
+  const [gameData, setGameData] = useState<GameData>();
+  const [player, setPlayer] = useState<Player>({
+    username: userName,
+    score: 0,
+    hand: [],
+    word_history: [],
+    isLeader: false,
+  });
 
 
-  const startGame = (data: any) => {
-    let playerName = userName;
-    setPlayerHand(data.player_hand)
-    console.log(playerName, gameCode);
-    socket.emit("start_game", { gameCode, playerName });
-  };
-
-  const isLeaderAndCurrentPlayer = (player: string) => {
-    return isLeader && players[0] === player;
-  };
-
-  useEffect(()=>{
-    if(gameStarted){
-      const timeString = localStorage.getItem("startTime")
-      if(timeString) setStartTime(new Date(Date.parse(timeString)))
+  const handlePlayerJoined = (data: any) => {
+    setGameData(data);
+    setPlayers(data.players);
+    for(var p  of data.players){
+      if(p.username == userName){
+        setPlayer(p);
+      }
     }
-  },[gameStarted])
+  };
 
   useEffect(() => {
-    socket.on("player_joined", (data) => {
-      console.log(data);
-      setGameStarted(data.started);
-      setPlayers(data.players);
-      if (data.players[0] === userName) {
-        setIsLeader(true); // First player is the leader
-      }
-    });
-
+    socket.on("player_joined", handlePlayerJoined);
     socket.on("connect", () => {
       console.log("Successfully connected to the server");
     });
-
-    socket.on("game_started", () => {
-      console.log("The game has started!!!");
-      setGameStarted(true);
+    socket.on("game_started", (data) => {
+      setGameData(data);
+      for(var p  of data.players){
+        if(p.username == userName){
+          setPlayer(p);
+        }
+      }
     });
-
     socket.on("error", (data) => {
       alert(data.message);
     });
 
-    // Clean up the socket connection when the component unmounts
     return () => {
       socket.off("connect");
       socket.off("player_joined");
       socket.off("game_started");
       socket.off("error");
     };
-  }, []);  
+  }, []);
 
   return (
     <div>
       <h1>Multiplayer Game</h1>
-      {!gameStarted ? (
+      {!gameData?.start_time ? (
         <div>
-          {isLeader && (
+          {player.isLeader && (
             <StartGameButton
-              onGameStart={startGame}
-              names={['test1',"test2"]}
               roomCode={gameCode}
             />
           )}
-          {players.length > 0 && (
+          {Array.isArray(players) && players.length > 0 && (
             <div>
               <h2>Players in Game:</h2>
               <ul>
-                {players.map((player, index) => (
+                {players.map((p, index) => (
                   <li key={index}>
-                    {isLeaderAndCurrentPlayer(player) && (
+                    {player.isLeader && p.isLeader &&(
                       <b className="pr-1" style={{ color: "red" }}>
                         Leader
                       </b>
                     )}
-                    {player}
+                    {p.username}
                   </li>
                 ))}
               </ul>
@@ -100,14 +95,13 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
       ) : (
         <div>
           <h2>Game has started!</h2>
-
-          {gameStarted && (
+          {gameData.start_time && (
             <>
               <GameComponent
-                playerHand={playerHand}
-                setPlayerHand={setPlayerHand}
+                player={player}
+                gameCode={gameCode}
               />
-              {startTime && <CountdownTimer startTime={startTime} />}
+              {gameData.start_time && <CountdownTimer startTime={gameData.start_time} />}
             </>
           )}
         </div>

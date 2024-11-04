@@ -2,22 +2,24 @@ import { useState } from "react";
 import GameInputField from "./GameInputField";
 import GameInputList from "./GameInputList";
 import { playWord } from "@/services/apiService";
+import { Player } from "@/models/player";
 
 interface GameComponentProps {
-  playerHand: string;
-  setPlayerHand: (hand: string) => void;
+  player: Player;
+  gameCode: string;
 }
 
-const GameComponent: React.FC<GameComponentProps> = ({ playerHand, setPlayerHand }) => {
-  const [submittedInputs, setSubmittedInputs] = useState<string[]>([]);
-  const [response, setResponse] = useState<any>(null);
+const GameComponent: React.FC<GameComponentProps> = ({ player, gameCode }) => {
+  const [submittedInputs, setSubmittedInputs] = useState<string[]>(player.word_history);
+  const [message, setMessage] = useState<string>('');
+  const [current_player, setPlayer] = useState<Player>(player);
   const [error, setError] = useState<string | null>(null);
 
   const handleInputSubmit = async (input: string) => {
     try {
-      const result = await playWord(input, playerHand);
-      setResponse(result.response);
-      setPlayerHand(result.player_hand);
+      const result = await playWord(input, player, gameCode);
+      setMessage(result.message);
+      setPlayer(result.player);
       setSubmittedInputs((prevInputs) => [...prevInputs, input]);
       setError(null);
     } catch (err) {
@@ -31,13 +33,13 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerHand, setPlayerHand
 
   return (
     <div>
-      <GameInputField onSubmit={handleInputSubmit} playerHand={playerHand} />
-      {response && (
+      <GameInputField onSubmit={handleInputSubmit} playerHand={current_player.hand} />
+      
         <div>
-          <p>{response.message}</p>
-          {response.score && <p>Score: {response.score}</p>}
+          <p>{message}</p>
+          {current_player.score && <p>Score: {current_player.score}</p>}
         </div>
-      )}
+      
       {error && <p className="text-red-500">{error}</p>}
       <GameInputList inputs={submittedInputs} />
     </div>

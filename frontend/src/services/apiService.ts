@@ -1,3 +1,4 @@
+import { Player } from "@/models/player";
 import serverUrl from "@/utils/config";
 
 /**
@@ -33,14 +34,14 @@ export const fetchData = async (): Promise<any> => {
  * @param {string} startTime - The current player's hand.
  * @returns {Promise<any>} The response data from the API.
  */
-export const startGame = async (names: Array<string>, roomCode: string, startTime: Date): Promise<any> => {
+export const startGame = async ( roomCode: string, startTime: Date): Promise<any> => {
   try {
     const response = await fetch(`${serverUrl}/api/start`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ names: names, room_id: roomCode, start_time: startTime }),
+      body: JSON.stringify({ room_id: roomCode, start_time: startTime }),
     });
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);
@@ -62,14 +63,14 @@ export const startGame = async (names: Array<string>, roomCode: string, startTim
  * @param {string} playerHand - The current player's hand.
  * @returns {Promise<any>} The response data from the API.
  */
-export const playWord = async (word: string, playerHand: string): Promise<any> => {
+export const playWord = async (word: string, player: Player, gameCode: string): Promise<any> => {
   try {
     const response = await fetch(`${serverUrl}/api/play`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ my_word: word, player_hand: playerHand }),
+      body: JSON.stringify({ my_word: word, player: player, game_code: gameCode }),
     });
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);
