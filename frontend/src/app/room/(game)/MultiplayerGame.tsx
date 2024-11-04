@@ -30,7 +30,6 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
 
 
   const handlePlayerJoined = (data: any) => {
-    console.log('handle player joined ', data)
     setGameData(data);
     setPlayers(data.players);
     for(var p  of data.players){
@@ -47,13 +46,11 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
     });
     socket.on("game_started", (data) => {
       setGameData(data);
-      console.log('my data ',data)
       for(var p  of data.players){
         if(p.username == userName){
           setPlayer(p);
         }
       }
-      console.log("The game has started!!!");
     });
     socket.on("error", (data) => {
       alert(data.message);

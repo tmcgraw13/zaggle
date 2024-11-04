@@ -62,14 +62,23 @@ class Player:
     def clear_hand(self):
         self.hand = []
     
-    def clean_hand_after_play(self,word_played):
+    def clean_hand_after_play(self, word_played):
+        # Removes letters from the player's hand based on the letters in word_played,
+        # ensuring that it only removes each letter once and in the correct order.
         self.word_history.append(word_played)
-        print(self.hand)
+        print("Before cleaning hand:", self.hand)
+        
+        temp_hand = self.hand[:]  # Copy of the hand for ordered removal
+        
         for letter in word_played:
-            if letter in self.hand:
-                self.hand.remove(letter)
-            else:
-                self.hand.remove("_")
+            if letter in temp_hand:
+                temp_hand.remove(letter)  # Remove the exact letter
+            elif "_" in temp_hand:
+                temp_hand.remove("_")  # Remove a wildcard if letter isn't found
+
+        self.hand = temp_hand  # Update the hand with removed letters
+        print("After cleaning hand:", self.hand)
+
 
     def add_letters_to_hand(self,letters_to_add):
         self.hand+= letters_to_add

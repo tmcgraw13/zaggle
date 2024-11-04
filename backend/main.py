@@ -115,7 +115,12 @@ def start_game():
 def play():
     data = request.json
     game_data: GameData = games[data["game_code"]]
-    player = Player.from_dict(data["player"])
+    username = Player.from_dict(data["player"]).username
+    player = next((p for p in game_data.players if p.username == username), None)
+    copy_letter_seq = game_data.letter_seq
+    
+    if not player:
+        return jsonify({'message': 'Player not found'})
     my_word = data.get('my_word', '').lower()
     i = player.seq_index
     player_hand = player.hand
@@ -127,8 +132,7 @@ def play():
             player.clean_hand_after_play(my_word)
             i+=len(my_word)
             player.set_seq_index(i)
-            player.add_letters_to_hand(game_data.letter_seq[i:i+len(my_word)])
-
+            player.add_letters_to_hand(copy_letter_seq[i:i+len(my_word)])
             message = 'Valid word'
         else:
             message = 'Invalid word'
@@ -139,7 +143,7 @@ def play():
 
     return jsonify({
         'message': message,
-        'player': player
+        'player': player.to_dict()
     })
 
 # ------------------------------------------------------ #
