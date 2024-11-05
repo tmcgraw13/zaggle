@@ -33,8 +33,6 @@ const StartGameButton: React.FC<StartGameButtonProps> = ({
     }
   };
 
-  
-
   return (
     <div>
       <button

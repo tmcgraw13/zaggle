@@ -28,8 +28,8 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
     isLeader: false,
   });
 
-
   const handlePlayerJoined = (data: any) => {
+    handleGameStartTime(data.start_time);
     setGameData(data);
     setPlayers(data.players);
     for(var p  of data.players){
@@ -39,8 +39,14 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
     }
   };
 
-  const handleSetStartTime = (timestamp: string) => {
-    localStorage.setItem("startTime", timestamp); 
+  const handleGameStartTime = (timestamp: string) => {
+    if(timestamp){
+      localStorage.setItem("startTime", timestamp);
+    }
+    else{
+      localStorage.removeItem("startTime"); //reset it
+    }
+     
   };
 
   useEffect(() => {
@@ -55,7 +61,7 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
           setPlayer(p);
         }
       }
-      handleSetStartTime(data.start_time)
+      handleGameStartTime(data.start_time)
     });
     socket.on("error", (data) => {
       alert(data.message);
