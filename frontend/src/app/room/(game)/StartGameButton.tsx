@@ -19,7 +19,6 @@ const StartGameButton: React.FC<StartGameButtonProps> = ({
   const handleClick = async () => {
     try {
       var activateStartTime = new Date()
-      handleSetStartTime(activateStartTime);
       const result = await startGame(roomCode, activateStartTime);
       setData(result);
       startGameWebSocket();
@@ -34,9 +33,7 @@ const StartGameButton: React.FC<StartGameButtonProps> = ({
     }
   };
 
-  const handleSetStartTime = (timestamp: Date) => {
-    localStorage.setItem("startTime", timestamp.toString()); 
-  };
+  
 
   return (
     <div>

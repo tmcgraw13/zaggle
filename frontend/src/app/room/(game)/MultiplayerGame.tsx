@@ -39,6 +39,10 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
     }
   };
 
+  const handleSetStartTime = (timestamp: string) => {
+    localStorage.setItem("startTime", timestamp); 
+  };
+
   useEffect(() => {
     socket.on("player_joined", handlePlayerJoined);
     socket.on("connect", () => {
@@ -51,6 +55,7 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
           setPlayer(p);
         }
       }
+      handleSetStartTime(data.start_time)
     });
     socket.on("error", (data) => {
       alert(data.message);
