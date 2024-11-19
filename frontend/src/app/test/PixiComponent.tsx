@@ -27,14 +27,61 @@ const PixiComponent = () => {
         appRef.current = app;
 
         const container = new Container();
+        const letter_container = new Container();
 
         app.stage.addChild(container);
+        app.stage.addChild(letter_container);
 
         // Load the bunny texture
         const texture = await Assets.load(
           "https://pixijs.com/assets/bunny.png"
         );
 
+        var alphabet = "abcdefghijklmnopqrstuvwxyz"
+        var letter_aliases = []
+
+        for (const letter of alphabet){
+          let letter_alias = letter + "_tile"
+          Assets.add({alias:letter_alias,src:"/game-board/"+letter+"-tile.png"})
+          letter_aliases.push(letter_alias)
+        }
+        const texturesPromise = Assets.load(letter_aliases)
+
+        texturesPromise.then((textures)=>{
+
+          console.log("Textures Loaded!")
+
+          let player_input = []
+
+          addEventListener("keydown", (event) => {
+
+            let key_pressed = event.key.toLowerCase()
+            if(alphabet.includes(key_pressed)){
+              let tile = textures[key_pressed + "_tile"]
+
+              const letter_sprite = new Sprite(tile)
+              
+              player_input.push(letter_sprite)  
+    
+              letter_container.addChild(letter_sprite)            
+            }
+            else if (key_pressed == "backspace"){
+              letter_container.removeChild(player_input.pop())
+            }
+
+            let index = 0
+            for (const letter_sprite of player_input){
+              letter_sprite.x = index * 65;
+              index ++
+            }
+
+          });
+
+
+          
+
+
+        })
         // Create a 5x5 grid of bunnies
         for (let i = 0; i < 25; i++) {
           const bunny = new Sprite(texture);
@@ -47,6 +94,7 @@ const PixiComponent = () => {
 
         // Set initial position and center container
         const resize = () => {
+          
           container.x = app.screen.width / 2;
           container.y = app.screen.height / 2;
 
