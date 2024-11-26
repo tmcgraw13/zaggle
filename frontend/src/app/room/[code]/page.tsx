@@ -17,6 +17,10 @@ export default function RoomCode({ params }: { params: { code: string } }) {
     socket.emit("join_game", { gameCode, playerName });
   };
 
+  const getGameStartTime = () => {
+      return localStorage.getItem("startTime");
+    };
+
   // Fetch userName from localStorage on component mount
   useEffect(() => {
     const storedUserName = localStorage.getItem("userName");
@@ -27,16 +31,14 @@ export default function RoomCode({ params }: { params: { code: string } }) {
     }
   }, []); // Only run this effect once on mount
 
-  
 
   useEffect(() => {
     // Check if both userName and roomLink are set before joining the game
     if (userName && roomCode) {
       joinGame();
     }
-  }, [userName]); // Run when userName or roomLink changes
+  }, [userName]); // Run when userName
 
-  
 
   // Save the username in localStorage
   const handleSetUserName = (name: string) => {
@@ -56,6 +58,7 @@ export default function RoomCode({ params }: { params: { code: string } }) {
       {!isModalOpen && userName && (
         <div className="text-center">
            <ShareGame gameCode={roomCode} />
+           {getGameStartTime()}
           { roomCode && (
             <MultiplayerGame userName={userName} gameCode={roomCode} />
           )}
