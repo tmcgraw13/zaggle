@@ -57,9 +57,6 @@ const PixiComponent = () => {
         //     );
         //     graphics.stroke({ width: Math.random() * 30, color: Math.random() * 0xffffff });
         // });
-    
-       
-    
 
         // Load the bunny texture
         const texture = await Assets.load(
@@ -80,7 +77,7 @@ const PixiComponent = () => {
 
           console.log("Textures Loaded!")
 
-          let player_input = []
+          let player_input: any = []
 
           addEventListener("keydown", (event) => {
 
