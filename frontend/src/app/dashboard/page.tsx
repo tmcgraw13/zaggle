@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import serverUrl from "@/utils/config";
 import CreateGame from "./CreateGame";
 import JoinGame from "./JoinGame";
 import ButtonStandard from "@/components/ButtonStandard";
@@ -30,21 +29,17 @@ export default function GameDashboard() {
       {/* Buttons for creating or joining a game */}
       <div className="flex gap-6 mb-6">
         <CreateGame />
-        <ButtonStandard
-          onButtonClick={() => setShowComponent("join")}
-          buttonName="Join Game"
-          className="px-6 py-3 bg-green-600 text-white rounded-md shadow-md transition-all duration-300 hover:bg-green-700"
-        />
+        {showComponent === "join" ? (
+          <JoinGame />
+        ) : (
+          <ButtonStandard
+            onButtonClick={() => setShowComponent("join")}
+            buttonName="Join Game"
+            className="px-6 py-3 bg-green-600 text-white rounded-md shadow-md transition-all duration-300 hover:bg-green-700"
+          />
+        )}
       </div>
 
-      <p className="text-center text-sm text-gray-600 mb-4">
-        Server URL: {serverUrl}
-      </p>
-
-      {/* Display Join Game component */}
-      <div className="mt-4 w-full max-w-md">
-        {showComponent === "join" && <JoinGame />}
-      </div>
     </div>
   );
 }
