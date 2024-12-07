@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import MultiplayerGame from "../(game)/MultiplayerGame";
 import socket from "@/utils/socket";
 import PlayerNameModal from "../../../components/PlayerNameModal";
-import ShareGame from "../(game)/ShareGame";
 
 export default function RoomCode({ params }: { params: { code: string } }) {
   const [userName, setUserName] = useState<string | null>(null);
@@ -17,10 +16,6 @@ export default function RoomCode({ params }: { params: { code: string } }) {
     socket.emit("join_game", { gameCode, playerName });
   };
 
-  const getGameStartTime = () => {
-      return localStorage.getItem("startTime");
-    };
-
   // Fetch userName from localStorage on component mount
   useEffect(() => {
     const storedUserName = localStorage.getItem("userName");
@@ -31,14 +26,12 @@ export default function RoomCode({ params }: { params: { code: string } }) {
     }
   }, []); // Only run this effect once on mount
 
-
   useEffect(() => {
     // Check if both userName and roomLink are set before joining the game
     if (userName && roomCode) {
       joinGame();
     }
   }, [userName]); // Run when userName
-
 
   // Save the username in localStorage
   const handleSetUserName = (name: string) => {
@@ -49,18 +42,19 @@ export default function RoomCode({ params }: { params: { code: string } }) {
 
   return (
     <>
-      {isModalOpen && !userName && (
+      {isModalOpen && !userName ? (
         <PlayerNameModal
           setUserName={handleSetUserName} // Pass setUserName function to the modal
           closeModal={() => setIsModalOpen(false)} // Close modal function
         />
-      )}
-      {!isModalOpen && userName && (
+      ) : (
         <div className="text-center">
-           <ShareGame gameCode={roomCode} />
-           {getGameStartTime()}
-          { roomCode && (
-            <MultiplayerGame userName={userName} gameCode={roomCode} />
+          {userName && roomCode ? (
+            <>
+              <MultiplayerGame userName={userName} gameCode={roomCode} />
+            </>
+          ) : (
+            <div>Loading...</div> // You can show a loading state if userName or roomCode are not available
           )}
         </div>
       )}

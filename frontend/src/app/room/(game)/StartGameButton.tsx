@@ -1,24 +1,23 @@
 import { useState } from "react";
 import { startGame } from "@/services/apiService";
 import socket from "@/utils/socket";
+import ButtonStandard from "@/components/ButtonStandard"; // Assuming ButtonStandard is available
 
 interface StartGameButtonProps {
   roomCode: string;
 }
 
-const StartGameButton: React.FC<StartGameButtonProps> = ({
-  roomCode
-}) => {
+const StartGameButton: React.FC<StartGameButtonProps> = ({ roomCode }) => {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   const startGameWebSocket = () => {
-    socket.emit("start_game", { 'gameCode':roomCode });
+    socket.emit("start_game", { gameCode: roomCode });
   };
 
   const handleClick = async () => {
     try {
-      var activateStartTime = new Date()
+      const activateStartTime = new Date();
       const result = await startGame(roomCode, activateStartTime);
       setData(result);
       startGameWebSocket();
@@ -34,25 +33,37 @@ const StartGameButton: React.FC<StartGameButtonProps> = ({
   };
 
   return (
-    <div>
-      <button
-        id="myButton"
-        onClick={handleClick}
-        className="p-2 bg-blue-500 text-white rounded"
-      >
-        Start Game
-      </button>
+    <div className="text-center p-4">
+      <h2 className="text-2xl font-semibold mb-4">Ready to Start the Game?</h2>
+      
+      {/* Start Game Button */}
+      <ButtonStandard
+        onButtonClick={handleClick}
+        buttonName="Start Game"
+        className="px-6 py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition-all duration-300"
+      />
+
+      {/* Response Data */}
       {data && (
-        <div>
-          <h2>Response Data:</h2>
-          <pre>{JSON.stringify(data, null, 2)}</pre>
+        <div className="mt-6 p-4 border-t border-gray-300">
+          <h3 className="text-xl font-semibold text-green-600 mb-2">Game Started!</h3>
           <div>
-            <h3>Player Hand:</h3>
-            <p>{data.player_hand}</p>
+            <h4 className="font-medium text-lg">Response Data:</h4>
+            <pre className="bg-gray-100 p-4 rounded-md text-sm overflow-x-auto">{JSON.stringify(data, null, 2)}</pre>
+            <div className="mt-4">
+              <h5 className="font-medium">Player Hand:</h5>
+              <p>{data.player_hand}</p>
+            </div>
           </div>
         </div>
       )}
-      {error && <p className="text-red-500">{error}</p>}
+
+      {/* Error Message */}
+      {error && (
+        <div className="mt-4 text-red-500 font-medium">
+          <p>Error: {error}</p>
+        </div>
+      )}
     </div>
   );
 };
