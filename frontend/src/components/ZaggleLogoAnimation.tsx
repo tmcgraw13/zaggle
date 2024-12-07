@@ -5,20 +5,19 @@ import { Application, Color, Container, Text, TextStyle } from "pixi.js";
 
 const ZaggleLogoAnimation = () => {
   const pixiContainer = useRef<HTMLDivElement | null>(null);
+  const appRef = useRef<Application | null>(null);
 
   useEffect(() => {
-    // Create PixiJS application with `init()` as you requested
     (async () => {
       const app = new Application();
 
-      // Initialize PixiJS application with the desired settings
       await app.init({
-        backgroundColor: 0xffffff, // White background color (not used with transparency)
-        backgroundAlpha: 0, // Transparent background for PixiJS canvas
-        antialias: true,        // Enable antialiasing for smoother rendering
+        backgroundAlpha: 0,
+        antialias: true,
       });
 
-      // Attach PixiJS canvas to the container
+      appRef.current = app; // Store the app reference
+
       if (pixiContainer.current) {
         pixiContainer.current.appendChild(app.canvas);
       }
@@ -26,16 +25,14 @@ const ZaggleLogoAnimation = () => {
       const logoContainer = new Container();
       app.stage.addChild(logoContainer);
 
-      // Letters of "ZAGGLE"
       const letters = ["Z", "A", "G", "G", "L", "E"];
       const letterSprites = letters.map((letter, index) => {
-        // Define text style
         const style = new TextStyle({
           fontFamily: "Arial",
-          fontSize: 64, // Fixed font size
+          fontSize: 64,
           fontWeight: "bold",
-          fill: 0x000000, // Black color for text
-          stroke: { color: "#ffffff", width: 4 }, // Stroke color and width
+          fill: 0x000000,
+          stroke: { color: "#ffffff", width: 4 },
           dropShadow: {
             color: "#000000",
             blur: 4,
@@ -44,87 +41,71 @@ const ZaggleLogoAnimation = () => {
           },
         });
 
-        // Create PixiJS Text object
         const text = new Text({text:letter, style});
-        text.anchor.set(0.5); // Center anchor
-        text.y = 100; // Default vertical position (will animate later)
-
-        // Add text to the stage
+        text.anchor.set(0.5);
+        text.y = 100;
         logoContainer.addChild(text);
 
-        // Animation function
         const animation = () => {
-          // Bounce effect for the Y position (sin wave for smooth vertical movement)
           text.y = app.canvas.height / 2 + Math.sin(app.ticker.lastTime / 100 + index) * 18;
-
-          // Color cycling effect (changing RGB values)
           text.tint = new Color([
             Math.abs(Math.sin(app.ticker.lastTime / 1000 + index * 0.5)),
             Math.abs(Math.cos(app.ticker.lastTime / 1000 + index * 0.5)),
-            1, // Constant blue component
+            1,
           ]).toNumber();
-
-          // Slow rotation effect for each letter
           text.rotation = Math.sin(app.ticker.lastTime / 500 + index) * 0.1;
         };
 
-        // Add the animation to Pixi's ticker
         app.ticker.add(animation);
-
         return text;
       });
 
-      // Calculate the total width of the letters and position them from the left edge of the container
-      const letterSpacing = 15; // Space between letters
-      let xOffset = 50; // Start positioning from the left side
+      let xOffset = 50;
       letterSprites.forEach((letter) => {
         letter.x = xOffset;
-        xOffset += letter.width + letterSpacing; // Move to the next letter
+        xOffset += letter.width + 15;
       });
 
-      // Calculate the total width of the logo (letters + spacing)
-      const totalWidth = xOffset - letterSpacing; // We subtract the last spacing since there's no letter after the last one
+      const totalWidth = xOffset - 15;
 
-      // Position the logo container at the center horizontally (no centering vertically)
+      // Function to resize and reposition the logo based on container size
       const positionLogoCenter = () => {
-        if (pixiContainer.current) {
+        if (pixiContainer.current && appRef.current) {
           const parentWidth = pixiContainer.current.clientWidth;
           const parentHeight = pixiContainer.current.clientHeight;
 
-          // Set logoContainer x to center it horizontally within the parent container
-          logoContainer.x = (parentWidth - totalWidth) / 2;
+          // Calculate the scaling factor based on the smaller dimension
+          const scaleFactor = Math.min(parentWidth / totalWidth, parentHeight / 150); // 150 is the height for reference
 
-          // Ensure logoContainer is vertically centered using the updated height
-          logoContainer.y = (parentHeight - logoContainer.height) / 2; 
+          // Scale the logo container
+          logoContainer.scale.set(scaleFactor);
+
+          // Center the logo horizontally and vertically
+          logoContainer.x = (parentWidth - totalWidth * scaleFactor) / 2;
+          logoContainer.y = (parentHeight - logoContainer.height * scaleFactor) / 2;
         }
       };
 
-      // Resize logic for PixiJS canvas
+      // Resize logic
       const resizeCanvas = () => {
-        if (pixiContainer.current && app.view) {
+        if (pixiContainer.current && appRef.current) {
           const parentWidth = pixiContainer.current.clientWidth;
           const parentHeight = pixiContainer.current.clientHeight;
 
           // Resize the PixiJS canvas to match the parent container size
           app.renderer.resize(parentWidth, parentHeight);
-
-          positionLogoCenter(); // Reposition logo container after resize
+          positionLogoCenter(); // Reposition and scale the logo after resizing
         }
       };
 
-      // Initial resize when the component mounts
       resizeCanvas();
 
-      // Wait for the first render to properly calculate and center the logo
       app.ticker.add(() => {
-        // After the first render, call resize to ensure everything is positioned correctly
         positionLogoCenter();
       });
 
-      // Adjust canvas size when the window or container is resized
       window.addEventListener("resize", resizeCanvas);
 
-      // Cleanup PixiJS application on unmount
       return () => {
         window.removeEventListener("resize", resizeCanvas);
         app.stage.removeChildren();
@@ -137,12 +118,11 @@ const ZaggleLogoAnimation = () => {
     <div
       ref={pixiContainer}
       style={{
-        height: "100%",           // Ensure the container takes full height of the parent
-        overflow: "hidden",       // Hide any overflow caused by scaling or animation
+        height: "100%", // Make it fit within the navbar
+        width: "100%",
+        overflow: "hidden", // Hide overflow
       }}
-    >
-      {/* PixiJS canvas will be appended here dynamically */}
-    </div>
+    />
   );
 };
 

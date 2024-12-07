@@ -19,7 +19,7 @@ export default function GameDashboard() {
         className="mb-8 border-4 border-dashed border-gray-300 rounded-lg p-4"
         style={{
           padding: 0,
-          height: "150px", // Match the height of the parent container
+          height: "200px", // Match the height of the parent container
           width: "500px", // Make the width dynamic, it will take the full width of the parent
         }}
       >
