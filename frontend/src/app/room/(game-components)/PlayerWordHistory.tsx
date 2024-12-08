@@ -2,7 +2,7 @@ interface InputListProps {
     inputs: string[];
   }
   
-  const GameInputList: React.FC<InputListProps> = ({ inputs }) => {
+  const PlayerWordHistory: React.FC<InputListProps> = ({ inputs }) => {
     return (
       <ul className="mt-4">
         {inputs.map((input, index) => (
@@ -14,5 +14,5 @@ interface InputListProps {
     );
   };
   
-  export default GameInputList;
+  export default PlayerWordHistory;
   

@@ -6,7 +6,7 @@ interface GameInputFieldProps {
   onSubmit: (input: string) => void;
 }
 
-const GameInputField: React.FC<GameInputFieldProps> = ({ playerHand, onSubmit }) => {
+const PlayerInputField: React.FC<GameInputFieldProps> = ({ playerHand, onSubmit }) => {
   const [input, setInput] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,4 +51,4 @@ const GameInputField: React.FC<GameInputFieldProps> = ({ playerHand, onSubmit })
   );
 };
 
-export default GameInputField;
+export default PlayerInputField;

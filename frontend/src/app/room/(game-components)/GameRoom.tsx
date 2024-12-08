@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from "react";
-import GameComponent from "./GameComponent";
-import StartGameButton from "./StartGameButton";
-import socket from "@/utils/socket";
 import CountdownTimer from "@/components/CountdownTimer";
-import { Player } from "@/models/player";
-import PlayerRoom from "./PlayerRoom";
 import { GameData } from "@/models/gameData";
-import ShareGame from "./ShareGame";
+import { Player } from "@/models/player";
+import socket from "@/utils/socket";
+import { useState, useEffect } from "react";
+import PlayersInLobby from "./PlayersInLobby";
+import GameStartButton from "./GameStartButton";
+import GameSharePanel from "./GameSharePanel";
+import PlayerActionPanel from "./PlayerActionPanel";
 
-interface MultiplayerGameProps {
+
+interface GameRoomProps {
   gameCode: string;
   userName: string;
 }
 
-function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
+function GameRoom({ userName, gameCode }: GameRoomProps) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [gameData, setGameData] = useState<GameData>();
   const [player, setPlayer] = useState<Player>({
@@ -85,7 +86,7 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
             {/* Player Room on the left */}
             <div style={{ flex: 1, paddingRight: "10px" }}>
               {Array.isArray(players) && players.length > 0 && (
-                <PlayerRoom players={players} isLeader={player.isLeader} />
+                <PlayersInLobby players={players} isLeader={player.isLeader} />
               )}
               {/* Start Game Button centered */}
               {!gameData?.start_time && player.isLeader && (
@@ -96,11 +97,11 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
                     marginTop: "10px",
                   }}
                 >
-                  <StartGameButton roomCode={gameCode} />
+                  <GameStartButton roomCode={gameCode} />
                 </div>
               )}
             </div>
-            <ShareGame gameCode={gameCode} />
+            <GameSharePanel gameCode={gameCode} />
           </div>
         </div>
       ) : (
@@ -108,7 +109,7 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
           <h2>Game has started!</h2>
           {gameData.start_time && (
             <>
-              <GameComponent player={player} gameCode={gameCode} />
+              <PlayerActionPanel player={player} gameCode={gameCode} />
               {gameData.start_time && (
                 <CountdownTimer startTime={gameData.start_time} />
               )}
@@ -120,4 +121,4 @@ function MultiplayerGame({ userName, gameCode }: MultiplayerGameProps) {
   );
 }
 
-export default MultiplayerGame;
+export default GameRoom;

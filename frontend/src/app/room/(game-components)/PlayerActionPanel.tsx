@@ -1,15 +1,15 @@
 import { useState } from "react";
-import GameInputField from "./GameInputField";
-import GameInputList from "./GameInputList";
+import PlayerInputField from "./PlayerInputField";
+import PlayerWordHistory from "./PlayerWordHistory";
 import { playWord } from "@/services/apiService";
 import { Player } from "@/models/player";
 
-interface GameComponentProps {
+interface PlayerActionPanelProps {
   player: Player;
   gameCode: string;
 }
 
-const GameComponent: React.FC<GameComponentProps> = ({ player, gameCode }) => {
+const PlayerActionPanel: React.FC<PlayerActionPanelProps> = ({ player, gameCode }) => {
   const [submittedInputs, setSubmittedInputs] = useState<string[]>(player.word_history);
   const [message, setMessage] = useState<string>('');
   const [current_player, setPlayer] = useState<Player>(player);
@@ -33,7 +33,7 @@ const GameComponent: React.FC<GameComponentProps> = ({ player, gameCode }) => {
 
   return (
     <div>
-      <GameInputField onSubmit={handleInputSubmit} playerHand={current_player.hand} />
+      <PlayerInputField onSubmit={handleInputSubmit} playerHand={current_player.hand} />
       
         <div>
           <p>{message}</p>
@@ -41,9 +41,9 @@ const GameComponent: React.FC<GameComponentProps> = ({ player, gameCode }) => {
         </div>
       
       {error && <p className="text-red-500">{error}</p>}
-      <GameInputList inputs={submittedInputs} />
+      <PlayerWordHistory inputs={submittedInputs} />
     </div>
   );
 };
 
-export default GameComponent;
+export default PlayerActionPanel;

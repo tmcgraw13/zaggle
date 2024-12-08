@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import MultiplayerGame from "../(game)/MultiplayerGame";
+import GameRoom from "../(game-components)/GameRoom";
 import socket from "@/utils/socket";
 import PlayerNameModal from "../../../components/PlayerNameModal";
 
@@ -51,7 +51,7 @@ export default function RoomCode({ params }: { params: { code: string } }) {
         <div className="text-center">
           {userName && roomCode ? (
             <>
-              <MultiplayerGame userName={userName} gameCode={roomCode} />
+              <GameRoom userName={userName} gameCode={roomCode} />
             </>
           ) : (
             <div>Loading...</div> // You can show a loading state if userName or roomCode are not available

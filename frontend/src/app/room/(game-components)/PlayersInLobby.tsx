@@ -2,12 +2,12 @@ import React from "react";
 import PlayerIcon from "./PlayerIcon";
 import { Player } from "@/models/player";
 
-interface PlayerRoomProps {
+interface PlayersInLobbyProps {
   players: Player[];
   isLeader: boolean;
 }
 
-const PlayerRoom: React.FC<PlayerRoomProps> = ({ players, isLeader }) => {
+const PlayersInLobby: React.FC<PlayersInLobbyProps> = ({ players, isLeader }) => {
   return (
     <div style={{ margin: "20px auto"}} className="mb-8 border-4 border-dashed border-gray-300 rounded-lg">
       <div>Players in Game:</div>
@@ -34,4 +34,4 @@ const PlayerRoom: React.FC<PlayerRoomProps> = ({ players, isLeader }) => {
   );
 };
 
-export default PlayerRoom;
+export default PlayersInLobby;

@@ -3,11 +3,11 @@ import { startGame } from "@/services/apiService";
 import socket from "@/utils/socket";
 import ButtonStandard from "@/components/ButtonStandard"; // Assuming ButtonStandard is available
 
-interface StartGameButtonProps {
+interface GameStartButtonProps {
   roomCode: string;
 }
 
-const StartGameButton: React.FC<StartGameButtonProps> = ({ roomCode }) => {
+const GameStartButton: React.FC<GameStartButtonProps> = ({ roomCode }) => {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,4 +68,4 @@ const StartGameButton: React.FC<StartGameButtonProps> = ({ roomCode }) => {
   );
 };
 
-export default StartGameButton;
+export default GameStartButton;

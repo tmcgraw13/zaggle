@@ -8,6 +8,7 @@ const iconMapping: { [key: string]: string } = {
   fire: "/characters/fire.gif",  // Fixed double slash in the path
   penguin: "/characters/penguin.gif",
   christmas: "/characters/christmas.gif",
+  computer: "/characters/computer.gif",
 };
 
 interface PlayerIconProps {

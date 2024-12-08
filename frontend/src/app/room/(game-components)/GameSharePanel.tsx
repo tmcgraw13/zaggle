@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import ButtonStandard from "@/components/ButtonStandard"; // Assuming this component is correctly set up
 
-interface ShareGameProps {
+interface GameSharePanelProps {
   gameCode: string;
 }
 
-const ShareGame: React.FC<ShareGameProps> = ({ gameCode }) => {
+const GameSharePanel: React.FC<GameSharePanelProps> = ({ gameCode }) => {
   const [roomLink, setRoomLink] = useState<string>("");
   const [copyCodeSuccess, setCopyCodeSuccess] = useState<boolean>(false); // Track copy success for Code
   const [copyLinkSuccess, setCopyLinkSuccess] = useState<boolean>(false); // Track copy success for Link
@@ -102,4 +102,4 @@ const styles = {
   },
 };
 
-export default ShareGame;
+export default GameSharePanel;
