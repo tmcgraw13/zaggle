@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ButtonStandard from "./ButtonStandard";
 
 interface PlayerNameModalProps {
   setUserName: (name: string) => void;
@@ -20,18 +21,16 @@ const PlayerNameModal: React.FC<PlayerNameModalProps> = ({ setUserName, closeMod
     <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center">
       <div className="bg-white p-6 rounded-lg shadow-lg">
         <h2 className="text-xl mb-4 text-black">Enter your name to proceed</h2>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={{display:'flex', flexDirection:'column'}}>
           <input
             type="text"
-            className="border p-2 mb-4 w-full text-black"
+            className="w-72 p-3 mt-4 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all duration-300 placeholder-gray-500 text-black top-full mt-3"
             placeholder="Your Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-            Enter Game
-          </button>
+          <ButtonStandard type="submit" buttonName={'Enter Game Room'}/>
         </form>
       </div>
     </div>
