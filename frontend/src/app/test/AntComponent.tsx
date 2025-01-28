@@ -11,9 +11,13 @@ const AntComponent = () => {
     grid.forEach((row,i) =>{
       row.forEach( (cell,j) =>{
         //cell contains the actual grid value
-   
-        //TODO fill each cell as white or black depending on cell value
-        
+        if (grid[i][j] == 1) {
+          ctx.strokeStyle = "black"
+          ctx.strokeRect(i*squareSize,j*squareSize,10,10)
+        }else{
+          ctx.strokeStyle = "white"
+          ctx.strokeRect(i*squareSize,j*squareSize,10,10)
+        }
         
       })
     })
@@ -25,6 +29,7 @@ const AntComponent = () => {
     
     ctx.fillStyle = "red"
     //TODO draw ant as a red square
+    ctx.fillRect(antPos.x*squareSize, antPos.y*squareSize,squareSize,squareSize)
      
   };
 
@@ -55,32 +60,66 @@ const AntComponent = () => {
     private rotateCW(){
 
       //TODO rotate ant clockwise
-      return;
+      this.direction = (this.direction + 1) % 4 
 
     }
 
     private rotateCCW(){
 
       //TODO Rotate ant counter-clockwise
-      return;
+      this.direction = (this.direction + 3) % 4
 
     }
 
     public update(){
 
       
-      if (this.x<0 || this.y <0 || this.x>= this.grid[0].length || this.y >= this.grid[0][0].length){
+      if (this.x<0 || this.y <0 || this.x >= this.grid[0].length || this.y >= this.grid[0][0].length){
         //outside grid, do nothing
         return;
       }
 
       let currSquare = this.grid[this.x][this.y]
-
+      
+      if (this.x == 0){
+        this.x += 1
+      }
+      if (this.y == 0){
+        this.y += 1
+      }
+      if (this.x == 99){
+        this.x -= 1
+      }
+      if (this.y == 99){
+        this.y -= 1
+      }
 
       //TODO Flip square and rotate ant based on square color
 
-      //TODO Move forward based on ant's direction
+      if (currSquare == 1){
+        this.rotateCCW()
+        this.grid[this.x][this.y] = 0
+      }
+      else{
+        this.rotateCW()
+        this.grid[this.x][this.y] = 1
+      }
 
+      //TODO Move forward based on ant's direction
+      switch(this.direction){
+        case 0 : 
+          this.y = this.y - 1
+          break
+        case 1 :
+          this.x = this.x + 1
+          break
+        case 2 :
+          this.y = this.y + 1
+          break
+        case 3 : 
+          this.x = this.x - 1
+          break
+      }
 
       
     }
@@ -110,7 +149,7 @@ const AntComponent = () => {
         });
 
         //initialize an Ant
-        let myAnt = new AntObj(grid,10,50);
+        let myAnt = new AntObj(grid,50,50);
 
 
         //begin drawing stuff
