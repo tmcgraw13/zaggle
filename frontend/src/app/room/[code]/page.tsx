@@ -49,7 +49,7 @@ export default function RoomCode({ params }: { params: { code: string } }) {
         />
       ) : (
         <div className="flex flex-col min-h-screen text-center"
-          style={{ minHeight: "100vh" }}>
+      >
 
           {userName && roomCode ? (
             <>

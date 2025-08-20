@@ -43,7 +43,7 @@ const PlayerActionPanel: React.FC<PlayerActionPanelProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-full flex flex-col">
       <div className="w-16 h-16">
         <CountdownTimer startTime={startTime} />
       </div>
@@ -77,21 +77,18 @@ const PlayerActionPanel: React.FC<PlayerActionPanelProps> = ({
       )}
 
       {/* Player hand and info icon */}
-<div className="relative flex items-center justify-center mt-4">
-  <PlayerHand current_player={current_player} />
+      <div className="relative flex items-center justify-center mt-4">
+        <PlayerHand current_player={current_player} />
 
-  <button
-    type="button"
-    className="absolute right-0 -mr-12 rounded-full"
-    onClick={() => setShowHistory(true)}
-    aria-label="Show word history"
-  >
-    <AiOutlineInfoCircle size={28} />
-  </button>
-</div>
-
-
-
+        <button
+          type="button"
+          className="absolute right-0 rounded-full"
+          onClick={() => setShowHistory(true)}
+          aria-label="Show word history"
+        >
+          <AiOutlineInfoCircle size={28} />
+        </button>
+      </div>
     </div>
   );
 };
