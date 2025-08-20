@@ -75,14 +75,7 @@ function GameRoom({ userName, gameCode }: GameRoomProps) {
     <div>
       {!gameData?.start_time ? (
         <div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              width: "100%",
-            }}
-          >
+          
             {/* Player Room on the left */}
             <div style={{ flex: 1, paddingRight: "10px" }}>
               {Array.isArray(players) && players.length > 0 && (
@@ -102,17 +95,12 @@ function GameRoom({ userName, gameCode }: GameRoomProps) {
               )}
             </div>
             <GameSharePanel gameCode={gameCode} />
-          </div>
         </div>
       ) : (
         <div>
-          <h2>Game has started!</h2>
           {gameData.start_time && (
             <>
-              <PlayerActionPanel player={player} gameCode={gameCode} />
-              {gameData.start_time && (
-                <CountdownTimer startTime={gameData.start_time} />
-              )}
+              <PlayerActionPanel player={player} gameCode={gameCode} startTime={gameData.start_time} />
             </>
           )}
         </div>

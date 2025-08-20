@@ -43,10 +43,6 @@ const PlayerInputField: React.FC<GameInputFieldProps> = ({ playerHand, onSubmit 
       >
         Submit
       </button>
-      <div>
-        <h3>Player Hand:</h3>
-        <p>{playerHand}</p>
-      </div>
     </form>
   );
 };

@@ -14,17 +14,6 @@ export default function GameDashboard() {
         Welcome to the Game!
       </h1>
 
-      {/* Zaggle Logo Animation with border */}
-      <div
-        className="mb-8 border-4 border-dashed border-gray-300 rounded-lg p-4"
-        style={{
-          padding: 0,
-          height: "200px", // Match the height of the parent container
-          width: "500px", // Make the width dynamic, it will take the full width of the parent
-        }}
-      >
-        <ZaggleLogoAnimation />
-      </div>
 
       {/* Buttons for creating or joining a game */}
       <div className="flex gap-6 mb-6">
@@ -39,7 +28,6 @@ export default function GameDashboard() {
           />
         )}
       </div>
-
     </div>
   );
 }
