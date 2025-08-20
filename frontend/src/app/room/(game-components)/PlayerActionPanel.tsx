@@ -5,6 +5,7 @@ import PlayerWordHistory from "./PlayerWordHistory";
 import { playWord } from "@/services/apiService";
 import { Player } from "@/models/player";
 import CountdownTimer from "@/components/CountdownTimer";
+import PlayerHand from "./PlayerHand";
 
 interface PlayerActionPanelProps {
   player: Player;
@@ -12,9 +13,15 @@ interface PlayerActionPanelProps {
   startTime: string;
 }
 
-const PlayerActionPanel: React.FC<PlayerActionPanelProps> = ({ player, gameCode, startTime }) => {
-  const [submittedInputs, setSubmittedInputs] = useState<string[]>(player.word_history);
-  const [message, setMessage] = useState<string>('');
+const PlayerActionPanel: React.FC<PlayerActionPanelProps> = ({
+  player,
+  gameCode,
+  startTime,
+}) => {
+  const [submittedInputs, setSubmittedInputs] = useState<string[]>(
+    player.word_history
+  );
+  const [message, setMessage] = useState<string>("");
   const [current_player, setPlayer] = useState<Player>(player);
   const [error, setError] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
@@ -36,27 +43,20 @@ const PlayerActionPanel: React.FC<PlayerActionPanelProps> = ({ player, gameCode,
   };
 
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <div className="w-16 h-16">
         <CountdownTimer startTime={startTime} />
       </div>
-      {/* Info icon to open popup */}
-      <button
-        type="button"
-        className="rounded-full "
-        onClick={() => setShowHistory(true)}
-        aria-label="Show word history"
-      >
-        <AiOutlineInfoCircle size={24} />
-      </button>
-      <PlayerInputField onSubmit={handleInputSubmit} playerHand={current_player.hand} />
+
+      <PlayerInputField
+        onSubmit={handleInputSubmit}
+        playerHand={current_player.hand}
+      />
       <div>
         <p>{message}</p>
         {current_player.score && <p>Score: {current_player.score}</p>}
       </div>
       {error && <p className="text-red-500">{error}</p>}
-
-      
 
       {/* Popup modal */}
       {showHistory && (
@@ -76,7 +76,22 @@ const PlayerActionPanel: React.FC<PlayerActionPanelProps> = ({ player, gameCode,
         </div>
       )}
 
-      player hand: {current_player.hand}
+      {/* Player hand and info icon */}
+<div className="relative flex items-center justify-center mt-4">
+  <PlayerHand current_player={current_player} />
+
+  <button
+    type="button"
+    className="absolute right-0 -mr-12 rounded-full"
+    onClick={() => setShowHistory(true)}
+    aria-label="Show word history"
+  >
+    <AiOutlineInfoCircle size={28} />
+  </button>
+</div>
+
+
+
     </div>
   );
 };

@@ -48,7 +48,9 @@ export default function RoomCode({ params }: { params: { code: string } }) {
           closeModal={() => setIsModalOpen(false)} // Close modal function
         />
       ) : (
-        <div className="text-center">
+        <div className="flex flex-col min-h-screen text-center"
+          style={{ minHeight: "100vh" }}>
+
           {userName && roomCode ? (
             <>
               <GameRoom userName={userName} gameCode={roomCode} />
