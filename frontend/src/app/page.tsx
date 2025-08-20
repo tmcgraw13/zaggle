@@ -8,7 +8,7 @@ export default function GameDashboard() {
   const [showComponent, setShowComponent] = useState<"join" | null>(null);
 
   return (
-<div className="h-full flex flex-col">
+<div>
   {/* Center content horizontally, scroll vertically if needed */}
   <div className="flex flex-col items-center mt-10 mb-10 overflow-auto flex-1 space-y-8">
     <h1 className="text-3xl font-bold text-gray-800">

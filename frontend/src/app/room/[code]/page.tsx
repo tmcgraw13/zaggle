@@ -48,9 +48,8 @@ export default function RoomCode({ params }: { params: { code: string } }) {
           closeModal={() => setIsModalOpen(false)} // Close modal function
         />
       ) : (
-        <div className="flex flex-col min-h-screen text-center"
-      >
 
+        <div className="flex flex-col text-center">
           {userName && roomCode ? (
             <>
               <GameRoom userName={userName} gameCode={roomCode} />
