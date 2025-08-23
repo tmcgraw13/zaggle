@@ -7,7 +7,12 @@ import FloatingLettersPanel from "./floating_letters";
 export default function Page() {
     const pageStyle: React.CSSProperties = {
         minHeight: "100vh",
+        width: "100vw",
+        boxSizing: "border-box",
+        overflow: "hidden", // prevent scrolling
+        overscrollBehavior: "contain",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         padding: 24,
@@ -26,14 +31,6 @@ export default function Page() {
     return (
         <div style={pageStyle}>
             <div style={columnStyle}>
-                <h3 style={{ margin: 0 }}>Floating Letters</h3>
-                <FloatingLettersPanel width={640} height={420} />
-                <small style={{ opacity: 0.8 }}>
-                    Drag letters to fling them. Tap/click to "capture" a letter.
-                </small>
-            </div>
-
-            <div style={columnStyle}>
                 <h3 style={{ margin: 0 }}>Letter Catcher</h3>
                 <div style={{ width: 320 }}>
                     <LetterCatcher />
@@ -41,6 +38,14 @@ export default function Page() {
                 <small style={{ opacity: 0.8 }}>
                     Clicked letters will be sent here. The catcher intercepts alerts
                     emitted by the floating panel.
+                </small>
+            </div>
+
+            <div style={columnStyle}>
+                <h3 style={{ margin: 0 }}>Floating Letters</h3>
+                <FloatingLettersPanel width={640} height={420} />
+                <small style={{ opacity: 0.8 }}>
+                    Drag letters to fling them. Tap/click to &quot;capture&quot; a letter.
                 </small>
             </div>
         </div>
