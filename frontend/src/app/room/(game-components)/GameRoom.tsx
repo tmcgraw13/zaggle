@@ -1,4 +1,3 @@
-import CountdownTimer from "@/components/CountdownTimer";
 import { GameData } from "@/models/gameData";
 import { Player } from "@/models/player";
 import socket from "@/utils/socket";
@@ -7,7 +6,6 @@ import PlayersInLobby from "./PlayersInLobby";
 import GameStartButton from "./GameStartButton";
 import GameSharePanel from "./GameSharePanel";
 import PlayerActionPanel from "./PlayerActionPanel";
-
 
 interface GameRoomProps {
   gameCode: string;
@@ -72,41 +70,30 @@ function GameRoom({ userName, gameCode }: GameRoomProps) {
   }, []);
 
   return (
-    <div>
+    <>
       {!gameData?.start_time ? (
-        <div>
-          
-            {/* Player Room on the left */}
-            <div style={{ flex: 1, paddingRight: "10px" }}>
-              {Array.isArray(players) && players.length > 0 && (
-                <PlayersInLobby players={players} isLeader={player.isLeader} />
-              )}
-              {/* Start Game Button centered */}
-              {!gameData?.start_time && player.isLeader && (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    marginTop: "10px",
-                  }}
-                >
-                  <GameStartButton roomCode={gameCode} />
-                </div>
-              )}
-            </div>
-            <GameSharePanel gameCode={gameCode} />
-        </div>
-      ) : (
-        <div>
-          {gameData.start_time && (
-            <>
-              <PlayerActionPanel player={player} gameCode={gameCode} startTime={gameData.start_time} />
-            </>
+        // Lobby layout — keep panels within available height
+        <>
+          {Array.isArray(players) && players.length > 0 && (
+            <PlayersInLobby players={players} isLeader={player.isLeader} />
           )}
-        </div>
+          {!gameData?.start_time && player.isLeader && (
+            <GameStartButton roomCode={gameCode} />
+          )}
+          <GameSharePanel gameCode={gameCode} />
+        </>
+      ) : (
+        <>
+          {gameData.start_time && (
+            <PlayerActionPanel
+              player={player}
+              gameCode={gameCode}
+              startTime={gameData.start_time}
+            />
+          )}
+        </>
       )}
-    </div>
+    </>
   );
 }
-
 export default GameRoom;

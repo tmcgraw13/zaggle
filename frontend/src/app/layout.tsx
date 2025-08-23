@@ -13,14 +13,29 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // navbarHeight matches the Tailwind h-16 (4rem) used below
+  // main uses calc(4rem + safe-area-inset-top) so scrolling/content starts below the fixed navbar
   return (
     <html lang="en">
       <body className={`${inter.className} h-screen flex flex-col bg-gray-100`}>
-        {/* Navbar at the top */}
-        <Navbar />
+        {/* fixed navbar: explicit height to keep layout consistent */}
+        <div
+          className="fixed inset-x-0 top-0 z-50 h-16 bg-white"
+          style={{ paddingTop: "env(safe-area-inset-top)" }}
+        >
+          <Navbar />
+        </div>
 
-        {/* Scrollable content below the navbar */}
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        {/* content padded so scrollbar and content start below the navbar (and respect notch) */}
+        <main
+          className="flex-1 overflow-y-auto"
+          style={{
+            paddingTop: "calc(4rem + env(safe-area-inset-top))",
+            paddingBottom: "env(safe-area-inset-bottom)",
+          }}
+        >
+          {children}
+        </main>
       </body>
     </html>
   );
