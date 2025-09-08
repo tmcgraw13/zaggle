@@ -182,3 +182,8 @@ docker-compose --profile dev up --build
 ```bash
 NODE_ENV=production docker-compose --profile prod up --build
 ```
+
+# Get Your Local IP for testing
+```
+ipconfig getifaddr en0
+```
