@@ -5,6 +5,22 @@ import * as PIXI from "pixi.js";
 
 export default function Page() {
   const containerRef = useRef<HTMLDivElement>(null);
+  function getLayoutConstants() {
+    const width = window.innerWidth;
+
+    // Smooth proportional scale for tiles/slots
+    const scale = Math.min(Math.max(width / 1200, 0.5), 1);
+
+    // Scale slot and gap proportionally
+    const SLOT_SIZE = 80 * scale;
+    const SLOT_GAP = 16 * scale;
+
+    // Padding should *not* shrink as much — interpolate between 50 and 32 instead
+    const PADDING = 50 - (width - 400) * (18 / 800); // transitions from 50 → 32
+    const clampedPadding = Math.max(32, Math.min(50, PADDING));
+
+    return { PADDING: clampedPadding, SLOT_SIZE, SLOT_GAP };
+  }
 
   useEffect(() => {
     let app: PIXI.Application | null = null;
@@ -30,9 +46,7 @@ export default function Page() {
       }
 
       // --- Layout constants (easy to tweak)
-      const PADDING = 32; // top/bottom padding for slots/rack
-      const SLOT_SIZE = 80; // width/height of each tile and slot
-      const SLOT_GAP = 16; // spacing between slots
+      let { PADDING, SLOT_SIZE, SLOT_GAP } = getLayoutConstants();
       const LETTERS = ["A", "B", "C", "D", "E", "F", "G"]; // letters in rack
 
       // --- Vertical positions
