@@ -94,7 +94,7 @@ export default function Page() {
         for (let i = 0; i < 7; i++) {
           const g = new PIXI.Graphics();
           g.roundRect(0, 0, SLOT_SIZE, SLOT_SIZE, 16)
-            .fill(0xe5e7eb) // Tailwind gray-200
+            .fill({color:0xe5e7eb}) // Tailwind gray-200
             .stroke({ color: 0x94a3b8, width: 2 }); // Tailwind gray-400
           g.alpha = 0.9;
           g.x = Math.round(startX + i * (SLOT_SIZE + SLOT_GAP));
@@ -125,7 +125,7 @@ export default function Page() {
         const c = new PIXI.Container();
         const g = new PIXI.Graphics();
         g.roundRect(0, 0, SLOT_SIZE, SLOT_SIZE, 16)
-          .fill(0xfef3c7) // Tailwind amber-100
+          .fill({color:0xfef3c7}) // Tailwind amber-100
           .stroke({ color: 0xf59e0b, width: 3 }); // Tailwind amber-500
         const t = new PIXI.Text({ text: letter, style: textStyle });
         t.anchor.set(0.5);
@@ -165,7 +165,10 @@ export default function Page() {
         const c = tile.ctr;
         let dragging = false;
         let dragOffset = { x: 0, y: 0 };
-        let clickTimer = 0;
+
+        // Click tracking
+        let lastClickTime = 0;
+        let clickTimeout: any = null;
 
         // --- pointer down
         c.on("pointerdown", (e: any) => {
@@ -178,7 +181,7 @@ export default function Page() {
           tile.lastMoves.length = 0;
           recordMove(global.x, global.y);
 
-          // if tile was in slot, release it
+          // If tile was in a slot, release it
           if (tile.slot) {
             tile.slot.occupiedBy = null;
             tile.slot = null;
@@ -198,7 +201,7 @@ export default function Page() {
           recordMove(x, y);
         });
 
-        // record last moves for velocity detection
+        // --- record last moves for velocity detection
         function recordMove(x: number, y: number) {
           const now = performance.now();
           tile.lastMoves.push({ x, y, t: now });
@@ -207,7 +210,7 @@ export default function Page() {
           }
         }
 
-        // calculate velocity for flick
+        // --- calculate velocity for flick
         function computeVelocity() {
           if (tile.lastMoves.length < 2) return { vx: 0, vy: 0, v: 0 };
           const a = tile.lastMoves[0];
@@ -245,37 +248,42 @@ export default function Page() {
             placeTileInSlot(tile, hoverSlot);
             return;
           }
-          // const nearest = nearestEmptySlot(c.x, c.y);
+
           const nextSlotInOrder = firstAvailableSlot();
-          console.log("Nearest slot:", nextSlotInOrder);
           if (nextSlotInOrder) placeTileInSlot(tile, nextSlotInOrder);
           else returnTileHome(tile);
         }
 
-        // --- single click → first empty slot
+        // --- unified click logic (single + double)
         c.on("pointertap", () => {
           const now = performance.now();
-          if (now - clickTimer < 300) return;
-          clickTimer = now;
-          if (dragging) return;
-          if (tile.slot) return;
-          const slot = firstAvailableSlot();
-          if (slot) placeTileInSlot(tile, slot);
-        });
+          const diff = now - lastClickTime;
 
-        // --- double click (quick) → return to rack
-        c.on("pointerdown", () => {
-          const now = performance.now();
-          if (now - clickTimer < 300) {
+          if (diff < 300) {
+            // DOUBLE CLICK detected
+            clearTimeout(clickTimeout);
+
+            // Return to rack
             if (tile.slot) {
               tile.slot.occupiedBy = null;
               tile.slot = null;
             }
             returnTileHome(tile);
+          } else {
+            // SINGLE CLICK (delay slightly to check for double)
+            clearTimeout(clickTimeout);
+            clickTimeout = setTimeout(() => {
+              if (dragging) return;
+              if (tile.slot) return;
+              const slot = firstAvailableSlot();
+              if (slot) placeTileInSlot(tile, slot);
+            }, 300);
           }
-          clickTimer = now;
+
+          lastClickTime = now;
         });
       }
+
 
       // =========================
       // SLOT HELPERS
