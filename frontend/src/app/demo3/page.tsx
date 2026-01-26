@@ -76,7 +76,7 @@ export default function Page() {
       // =========================
       // TILES SETUP (moved to ./tiles)
       // =========================
-      const { tiles, createTile, placeTileInSlot, returnTileHome } = createTileHelpers({
+      const { tiles, createTile, returnTileHome } = createTileHelpers({
         SLOT_SIZE,
         tilesLayer,
         textStyle,
