@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Color tokens */
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -16,6 +17,7 @@
   }
 }
 
+/* Page background + foreground */
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
@@ -24,17 +26,45 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Small utility additions */
 @layer utilities {
+  /* Use only where supported; keeps intent explicit */
   .text-balance {
     text-wrap: balance;
   }
 }
 
+/* Simple wiggle animation used by small UI accents */
 @keyframes wiggle {
-    0%, 100% { transform: rotate(-5deg); }
-  50% { transform: rotate(5deg); }
- }
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
 .animate-wiggle {
-  animation: wiggle 0.2s infinite; }
+  animation: wiggle 0.2s infinite;
+}
+
+/* Hide native scrollbars visually while preserving scroll behavior */
+.scrollable {
+  -webkit-overflow-scrolling: touch; /* momentum on iOS */
+  overscroll-behavior: contain;      /* prevent parent/viewport bounce while scrolling this element */
+  touch-action: pan-y;               /* allow vertical pan inside this element */
+}
+
+/* Keep the no-scrollbar helper but only visually hide scrollbars,
+   it won't affect touch/momentum behavior. */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

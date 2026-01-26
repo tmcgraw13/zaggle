@@ -182,6 +182,13 @@ def on_start_game(data):
     print(games[game_code])
     emit('game_started',game_lookup.to_dict(), room=game_code)
 
+@socketio.on('end_game')
+def on_end_game(gamecode:str):
+    print(gamecode)
+    game_lookup: GameData = games[gamecode]
+    print(game_lookup)
+    emit('game_ended',game_lookup.to_dict(), room=gamecode)
+
 
 # main driver function
 if __name__ == '__main__':

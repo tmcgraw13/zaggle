@@ -44,19 +44,21 @@ export default function RoomCode({ params }: { params: { code: string } }) {
     <>
       {isModalOpen && !userName ? (
         <PlayerNameModal
-          setUserName={handleSetUserName} // Pass setUserName function to the modal
-          closeModal={() => setIsModalOpen(false)} // Close modal function
+          setUserName={handleSetUserName}
+          closeModal={() => setIsModalOpen(false)}
         />
       ) : (
-        <div className="text-center">
+        // ensure this page fills the available space from layout and avoids creating its own vertical scroll
+        <>
           {userName && roomCode ? (
-            <>
+            // keep GameRoom inside a flex child that can size to the parent
               <GameRoom userName={userName} gameCode={roomCode} />
-            </>
           ) : (
-            <div>Loading...</div> // You can show a loading state if userName or roomCode are not available
+            <div>
+              Loading...
+            </div>
           )}
-        </div>
+        </>
       )}
     </>
   );
