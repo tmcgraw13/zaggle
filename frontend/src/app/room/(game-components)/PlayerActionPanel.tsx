@@ -1,11 +1,28 @@
-import React, { useState, useEffect, useRef } from "react";
+"use client";
+
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { AiOutlineInfoCircle } from "react-icons/ai";
-import PlayerInputField from "./PlayerInputField";
 import PlayerWordHistory from "./PlayerWordHistory";
-import { playWord } from "@/services/apiService";
+import { playWord, getWordCount, shuffleHand } from "@/services/apiService";
 import { Player } from "@/models/player";
 import CountdownTimer from "@/components/CountdownTimer";
-import PlayerHand from "./PlayerHand";
+import PixiTileRack, { PixiTileRackRef } from "./PixiTileRack";
+import { calculatePoints, formatPoints } from "@/utils/scoring";
+import socket from "@/utils/socket";
+
+// Point penalty for manual shuffle
+const SHUFFLE_PENALTY = 5;
+
+// Difficulty bonus based on available words (fewer words = bigger bonus)
+// Free shuffle threshold: 15 words or less
+function getDifficultyBonus(wordCount: number): number {
+  if (wordCount === 1) return 15;      // Only 1 word possible - huge bonus!
+  if (wordCount <= 3) return 10;       // Very limited options
+  if (wordCount <= 5) return 7;        // Limited options
+  if (wordCount <= 9) return 4;        // Somewhat limited
+  if (wordCount <= 15) return 2;       // Slightly limited (free shuffle zone)
+  return 0;                            // 16+ words - no bonus
+}
 
 interface PlayerActionPanelProps {
   player: Player;
@@ -25,322 +42,374 @@ const PlayerActionPanel: React.FC<PlayerActionPanelProps> = ({
   const [current_player, setPlayer] = useState<Player>(player);
   const [error, setError] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [dictionary, setDictionary] = useState<Set<string>>(new Set());
+  const [dictionaryLoaded, setDictionaryLoaded] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTimeUp, setIsTimeUp] = useState(false);
+  const [wordCount, setWordCount] = useState<number | null>(null);
+  const [isShuffling, setIsShuffling] = useState(false);
 
-  // new: track keyboard/viewport offset so the bottom panel sits above the virtual keyboard
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const tileRackRef = useRef<PixiTileRackRef>(null);
+  const hasEndedGame = useRef(false);
+  const isAutoShuffling = useRef(false);
 
-  // new refs for debounce/raf cleanup
-  const rafRef = useRef<number | null>(null);
-  const clearTimeoutRef = useRef<number | null>(null);
+  // Handle timer expiration
+  const handleTimeUp = useCallback(() => {
+    if (hasEndedGame.current) return;
+    hasEndedGame.current = true;
+    setIsTimeUp(true);
+    console.log("Time's up! Ending game...");
+    socket.emit("end_game", gameCode);
+  }, [gameCode]);
 
-  // ref for the main content area to toggle overflow only when needed
-  const contentRef = useRef<HTMLDivElement | null>(null);
-
-  // toggle overflow:hidden / auto depending on whether content actually overflows
-  const updateContentOverflow = (el: HTMLDivElement | null) => {
-    if (!el) return;
-    const needsScroll =
-      el.scrollHeight > el.clientHeight + 1 ||
-      el.scrollWidth > el.clientWidth + 1;
-
-    // enable native momentum scrolling on iOS & prevent parent bounce
-    el.style.overflow = needsScroll ? "auto" : "hidden";
-    if (needsScroll) {
-      el.classList.add("scrollable");
-      (el.style as any).WebkitOverflowScrolling = "touch";
-      el.style.overscrollBehavior = "contain";
-    } else {
-      el.classList.remove("scrollable");
-      (el.style as any).WebkitOverflowScrolling = "";
-      el.style.overscrollBehavior = "";
-    }
-  };
-
+  // Reset game state when startTime changes (new game)
   useEffect(() => {
-    const updateOffset = () => {
-      if (typeof window === "undefined") return;
-      const vv = (window as any).visualViewport;
+    hasEndedGame.current = false;
+    setIsTimeUp(false);
+  }, [startTime]);
 
-      if (vv) {
-        // compute offset
-        const offset = Math.max(0, window.innerHeight - vv.height);
-
-        // if keyboard closed (offset 0) set immediately (cancel pending timers)
-        if (offset === 0) {
-          if (clearTimeoutRef.current) {
-            window.clearTimeout(clearTimeoutRef.current);
-            clearTimeoutRef.current = null;
-          }
-          if (rafRef.current) {
-            window.cancelAnimationFrame(rafRef.current);
-            rafRef.current = null;
-          }
-          setKeyboardOffset(0);
-          return;
+  // Load dictionary on mount
+  useEffect(() => {
+    const loadDictionary = async () => {
+      try {
+        const response = await fetch("/curated_dictionary.json");
+        if (!response.ok) {
+          throw new Error("Failed to load dictionary");
         }
-
-        // when keyboard opens / resizes, use rAF for a smooth immediate update
-        if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = window.requestAnimationFrame(() => {
-          setKeyboardOffset(offset);
-        });
-      } else {
-        // fallback - no visualViewport
-        setKeyboardOffset(0);
+        const words: string[] = await response.json();
+        setDictionary(new Set(words.map((w) => w.toUpperCase())));
+        setDictionaryLoaded(true);
+        console.log(`Dictionary loaded: ${words.length} words`);
+      } catch (err) {
+        console.error("Failed to load dictionary:", err);
+        // Fallback: still allow gameplay, server will validate
+        setDictionaryLoaded(true);
       }
     };
 
-    // quick handler to aggressively clear offset when inputs lose focus
-    const handleFocusOut = () => {
-      // small delay to let browser finish resizing; this reduces perceived lag
-      if (clearTimeoutRef.current) window.clearTimeout(clearTimeoutRef.current);
-      clearTimeoutRef.current = window.setTimeout(() => {
-        if (rafRef.current) {
-          window.cancelAnimationFrame(rafRef.current);
-          rafRef.current = null;
-        }
-        setKeyboardOffset(0);
-        clearTimeoutRef.current = null;
-      }, 80); // 80ms works well across iOS/Android; adjust if needed
-    };
-
-    updateOffset();
-    const vv = (window as any).visualViewport;
-    if (vv) {
-      vv.addEventListener("resize", updateOffset);
-      vv.addEventListener("scroll", updateOffset);
-    }
-    // also listen for focusout on document so we can clear offset immediately when inputs blur
-    document.addEventListener("focusout", handleFocusOut, true);
-    window.addEventListener("resize", updateOffset);
-    window.addEventListener("orientationchange", updateOffset);
-
-    return () => {
-      if (vv) {
-        vv.removeEventListener("resize", updateOffset);
-        vv.removeEventListener("scroll", updateOffset);
-      }
-      document.removeEventListener("focusout", handleFocusOut, true);
-      window.removeEventListener("resize", updateOffset);
-      window.removeEventListener("orientationchange", updateOffset);
-
-      if (rafRef.current) {
-        window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-      if (clearTimeoutRef.current) {
-        window.clearTimeout(clearTimeoutRef.current);
-        clearTimeoutRef.current = null;
-      }
-    };
+    loadDictionary();
   }, []);
 
-  // watch main content and toggle scrollbar only when necessary
-  useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
+  // Handle word submission from PixiTileRack
+  const handleWordSubmit = useCallback(
+    async (word: string) => {
+      if (isSubmitting || isTimeUp) return;
 
-    // initial check
-    updateContentOverflow(el);
-
-    const observers: (ResizeObserver | MutationObserver)[] = [];
-
-    if (typeof ResizeObserver !== "undefined") {
-      const ro = new ResizeObserver(() => updateContentOverflow(el));
-      ro.observe(el);
-      observers.push(ro);
-    }
-
-    const mo = new MutationObserver(() => updateContentOverflow(el));
-    mo.observe(el, { childList: true, subtree: true, characterData: true });
-    observers.push(mo);
-
-    const onWinResize = () => updateContentOverflow(el);
-    window.addEventListener("resize", onWinResize);
-    window.addEventListener("orientationchange", onWinResize);
-
-    return () => {
-      observers.forEach((o) => {
-        try {
-          (o as ResizeObserver).disconnect?.();
-          (o as MutationObserver).disconnect?.();
-        } catch {}
-      });
-      window.removeEventListener("resize", onWinResize);
-      window.removeEventListener("orientationchange", onWinResize);
-    };
-  }, [submittedInputs, message, current_player, showHistory]);
-
-  // prevent vertical panning on the content area when it doesn't need scroll
-  useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
-
-    const shouldPrevent = () => el.scrollHeight <= el.clientHeight + 1 && el.scrollWidth <= el.clientWidth + 1;
-
-    const touchMoveHandler = (e: TouchEvent) => {
-      if (shouldPrevent()) {
-        e.preventDefault();
-      }
-    };
-
-    const wheelHandler = (e: WheelEvent) => {
-      if (shouldPrevent()) {
-        e.preventDefault();
-      }
-    };
-
-    // non-passive so we can call preventDefault
-    el.addEventListener("touchmove", touchMoveHandler as EventListener, { passive: false });
-    el.addEventListener("wheel", wheelHandler as EventListener, { passive: false });
-
-    // keep checks up-to-date on resize (keyboard/opening may change sizes)
-    const onResize = () => {
-      updateContentOverflow(el);
-    };
-    window.addEventListener("resize", onResize);
-    window.addEventListener("orientationchange", onResize);
-
-    return () => {
-      try {
-        el.removeEventListener("touchmove", touchMoveHandler as EventListener);
-        el.removeEventListener("wheel", wheelHandler as EventListener);
-      } catch {}
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("orientationchange", onResize);
-    };
-  }, [submittedInputs, message, current_player, showHistory]);
-
-  const handleInputSubmit = async (input: string) => {
-    try {
-      const result = await playWord(input, player, gameCode);
-      setMessage(result.message);
-      setPlayer(result.player);
-      setSubmittedInputs((prevInputs) => [...prevInputs, input]);
+      setIsSubmitting(true);
       setError(null);
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred");
-      }
-    }
-  };
 
-  const touchStartRef = useRef<number | null>(null);
-  const shouldBlockRef = useRef<boolean>(false);
+      // Calculate difficulty bonus before submission (based on current word count)
+      const difficultyBonus = wordCount !== null ? getDifficultyBonus(wordCount) : 0;
 
-  useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
-
-    const shouldPrevent = () =>
-      el.scrollHeight <= el.clientHeight + 1 &&
-      el.scrollWidth <= el.clientWidth + 1;
-
-    const touchStart = (e: TouchEvent) => {
-      touchStartRef.current = e.touches?.[0]?.clientY ?? null;
-      shouldBlockRef.current = shouldPrevent();
-    };
-
-    const touchMove = (e: TouchEvent) => {
-      // only block when we decided at touchstart the content fits (no scroll needed)
-      if (shouldBlockRef.current) {
-        e.preventDefault();
-      }
-      // otherwise allow normal scrolling
-    };
-
-    // non-passive so preventDefault works on iOS
-    el.addEventListener("touchstart", touchStart as EventListener, { passive: true });
-    el.addEventListener("touchmove", touchMove as EventListener, { passive: false });
-
-    return () => {
       try {
-        el.removeEventListener("touchstart", touchStart as EventListener);
-        el.removeEventListener("touchmove", touchMove as EventListener);
-      } catch {}
+        const result = await playWord(word.toLowerCase(), current_player, gameCode, difficultyBonus);
+
+        if (result.message === "Valid word") {
+          const basePoints = calculatePoints(word);
+          const totalPoints = basePoints + difficultyBonus;
+
+          // Show points with bonus if applicable
+          if (difficultyBonus > 0) {
+            setMessage(`+${formatPoints(basePoints)} +${difficultyBonus} bonus!`);
+          } else {
+            setMessage(`+${formatPoints(basePoints)}`);
+          }
+
+          console.log("New player data from server:", result.player);
+          console.log("New hand:", result.player.hand);
+          setPlayer(result.player);
+          setSubmittedInputs((prev) => [...prev, word.toUpperCase()]);
+
+          // Clear the tile rack
+          tileRackRef.current?.clearWord();
+
+          // Notify other players of score update
+          socket.emit("score_update", { gameCode });
+        } else {
+          setMessage(result.message);
+          // Shake the tiles for invalid word
+          tileRackRef.current?.shakeInvalidWord();
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred");
+        }
+        tileRackRef.current?.shakeInvalidWord();
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [current_player, gameCode, isSubmitting, isTimeUp, wordCount]
+  );
+
+  // Handle word change (for real-time feedback)
+  const handleWordChange = useCallback(
+    (word: string, isValid: boolean, points: number) => {
+      // Clear previous message when word changes
+      if (word.length === 0) {
+        setMessage("");
+      }
+    },
+    []
+  );
+
+  // Update current_player when player prop changes
+  useEffect(() => {
+    setPlayer(player);
+    setSubmittedInputs(player.word_history);
+  }, [player]);
+
+  // Perform shuffle (with or without penalty)
+  const performShuffle = useCallback(async (withPenalty: boolean) => {
+    if (isShuffling || isTimeUp) return;
+
+    setIsShuffling(true);
+    try {
+      const result = await shuffleHand(gameCode, current_player.username, withPenalty);
+      if (result.player) {
+        setPlayer(result.player);
+
+        // Show appropriate message
+        if (result.penalty_applied) {
+          setMessage(`-${result.penalty_amount} pts (shuffle)`);
+        } else {
+          setMessage("Auto-shuffled!");
+        }
+
+        // Clear the tile rack
+        tileRackRef.current?.clearWord();
+
+        // Notify other players of score update
+        socket.emit("score_update", { gameCode });
+      }
+    } catch (err) {
+      console.error("Failed to shuffle hand:", err);
+      setError("Failed to shuffle letters");
+    } finally {
+      setIsShuffling(false);
+      isAutoShuffling.current = false;
+    }
+  }, [gameCode, current_player.username, isShuffling, isTimeUp]);
+
+  // Fetch word count when hand changes and auto-shuffle if no words possible
+  useEffect(() => {
+    const fetchWordCount = async () => {
+      if (!current_player.hand || current_player.hand.length === 0) {
+        setWordCount(null);
+        return;
+      }
+
+      // Skip if already auto-shuffling
+      if (isAutoShuffling.current) return;
+
+      try {
+        const result = await getWordCount(current_player.hand);
+        setWordCount(result.count);
+        console.log(`Word count for hand: ${result.count}`, result.sample_words);
+
+        // Auto-shuffle if no words possible (no penalty)
+        if (result.count === 0 && !isTimeUp && !isShuffling) {
+          console.log("No words possible - auto-shuffling...");
+          isAutoShuffling.current = true;
+          performShuffle(false); // false = no penalty
+        }
+      } catch (err) {
+        console.error("Failed to get word count:", err);
+        setWordCount(null);
+      }
     };
-  }, [submittedInputs, message, current_player, showHistory]);
+
+    fetchWordCount();
+  }, [current_player.hand, isTimeUp, isShuffling, performShuffle]);
+
+  // Handle manual shuffle button click (free if <= 15 words, otherwise penalty)
+  const handleShuffle = useCallback(async () => {
+    if (isShuffling || isTimeUp) return;
+    const applyPenalty = wordCount !== null && wordCount > 15;
+    await performShuffle(applyPenalty);
+  }, [performShuffle, isShuffling, isTimeUp, wordCount]);
+
+  if (!dictionaryLoaded) {
+    return (
+      <div className="h-full flex items-center justify-center bg-slate-900 overflow-hidden">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+          <p className="text-slate-400">Loading dictionary...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Timer */}
-      <div className="w-14 h-14 mx-auto mt-2 mb-2 sm:w-16 sm:h-16">
-        <CountdownTimer startTime={startTime} />
-      </div>
-     
+    <div className="h-full flex flex-col bg-slate-900 relative">
+      {/* Top bar: Timer + Message + Score - optimized for mobile */}
+      <div className="flex items-center justify-between px-3 py-3 bg-slate-800/50 gap-2">
+        {/* Timer */}
+        <div className="w-12 h-12 flex-shrink-0">
+          <CountdownTimer startTime={startTime} onTimeUp={handleTimeUp} />
+        </div>
 
-      {/* Input and messages */}
-      <div
-        ref={contentRef}
-        className="flex-1 flex flex-col items-center px-2 no-scrollbar"
-        style={{ overflow: "hidden" }}
-      >
-        <PlayerInputField
-          onSubmit={handleInputSubmit}
-          playerHand={current_player.hand}
-        />
-        <div className="w-full max-w-xs text-center mt-2">
-          <p className="text-sm">{message}</p>
-          {current_player.score !== undefined && (
-            <p className="text-xs text-gray-500">Score: {current_player.score}</p>
+        {/* Center: Message + Word count + Bonus */}
+        <div className="flex-1 flex flex-col items-center justify-center min-w-0">
+          {message ? (
+            <p
+              className={`text-base sm:text-lg font-bold truncate ${
+                message.startsWith("+")
+                  ? "text-emerald-400"
+                  : message.startsWith("-")
+                  ? "text-red-400"
+                  : "text-amber-400"
+              }`}
+            >
+              {message}
+            </p>
+          ) : error ? (
+            <p className="text-xs text-red-400 truncate">{error}</p>
+          ) : null}
+
+          {/* Word count + bonus inline */}
+          {wordCount !== null && (
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span
+                className={`text-xs font-medium ${
+                  wordCount === 0
+                    ? "text-red-400 animate-pulse"
+                    : wordCount <= 5
+                    ? "text-amber-400"
+                    : "text-emerald-400"
+                }`}
+              >
+                {wordCount === 0
+                  ? "Shuffling..."
+                  : wordCount === 1
+                  ? "1 word"
+                  : `${wordCount}+ words`}
+              </span>
+              {wordCount > 0 && wordCount <= 15 && (
+                <span className="text-[10px] font-bold text-yellow-400 bg-yellow-400/20 px-1.5 py-0.5 rounded-full">
+                  +{getDifficultyBonus(wordCount)}
+                </span>
+              )}
+            </div>
           )}
-          {error && <p className="text-xs text-red-500">{error}</p>}
+        </div>
+
+        {/* Score + Shuffle */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Shuffle button - compact */}
+          {wordCount !== null && wordCount > 0 && !isTimeUp && (
+            <button
+              onClick={handleShuffle}
+              disabled={isShuffling}
+              className={`w-9 h-9 flex items-center justify-center rounded-full
+                         disabled:opacity-50 text-white transition-colors text-lg
+                         ${wordCount <= 15
+                           ? "bg-emerald-600 active:bg-emerald-500"
+                           : "bg-slate-600 active:bg-slate-500"}`}
+              title={wordCount <= 15 ? "Free shuffle!" : `Shuffle costs ${SHUFFLE_PENALTY} points`}
+              aria-label={wordCount <= 15 ? "Free shuffle" : `Shuffle (-${SHUFFLE_PENALTY}pts)`}
+            >
+              {isShuffling ? "..." : "\u{1F500}"}
+            </button>
+          )}
+
+          {/* Score */}
+          <div className="text-right min-w-[50px]">
+            <p className="text-xl sm:text-2xl font-bold text-white leading-none">
+              {current_player.score ?? 0}
+            </p>
+            <p className="text-[10px] text-slate-400">pts</p>
+          </div>
         </div>
       </div>
 
-      {/* Popup modal */}
-      {showHistory && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-2">
-          <div className="bg-white rounded-lg shadow-lg p-4 max-w-xs w-full relative overflow-y-auto max-h-[80vh]">
-            <button
-              type="button"
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-              onClick={() => setShowHistory(false)}
-              aria-label="Close"
-            >
-              &times;
-            </button>
-            <h2 className="text-base font-bold mb-2">Word History</h2>
-            <PlayerWordHistory inputs={submittedInputs} />
+      {/* PixiTileRack - takes all remaining space */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <PixiTileRack
+          ref={tileRackRef}
+          hand={current_player.hand || []}
+          dictionary={dictionary}
+          onWordSubmit={handleWordSubmit}
+          onWordChange={handleWordChange}
+          disabled={isSubmitting || isTimeUp}
+        />
+      </div>
+
+      {/* Time's up overlay */}
+      {isTimeUp && (
+        <div className="absolute inset-0 bg-slate-900/80 flex items-center justify-center z-30">
+          <div className="text-center">
+            <p className="text-3xl font-bold text-white mb-2">Time&apos;s Up!</p>
+            <p className="text-slate-400">Calculating results...</p>
           </div>
         </div>
       )}
 
-      {/* bottom hand + info: fixed and moves up when keyboard opens */}
-      <div
-        className="z-50 left-0 right-0 px-2 py-2 flex items-center justify-center gap-3 border-t bg-white select-none"
-        style={{
-          position: "fixed",
-          bottom: 0,
-          transform: `translateY(-${keyboardOffset}px)`,
-          transition: "transform 120ms linear", // smooth movement
-          paddingBottom: `env(safe-area-inset-bottom)`,
-          touchAction: "pan-x",
-        }}
-        // Prevent wheel/trackpad scrolls when interacting with this bar
-        onWheel={(e) => e.preventDefault()}
-        // Prevent touchmove from causing the page scroll on mobile
-        onTouchMove={(e) => e.preventDefault()}
-        // Stop pointer/mouse drags from bubbling to the page scroll
-        onPointerDown={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
+      {/* Word history button - bottom right, above tile rack */}
+      <button
+        type="button"
+        className="absolute bottom-4 right-4 bg-slate-700/90 active:bg-slate-600 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg z-20"
+        onClick={() => setShowHistory(true)}
+        aria-label="Show word history"
       >
-        <div className="pointer-events-auto">
-          <PlayerHand current_player={current_player} />
-        </div>
-        <div className="pointer-events-auto">
-          <button
-            type="button"
-            className="rounded-full p-1"
-            onClick={() => setShowHistory(true)}
-            aria-label="Show word history"
+        <AiOutlineInfoCircle size={22} />
+      </button>
+
+      {/* Word history modal - mobile optimized */}
+      {showHistory && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50"
+          onClick={() => setShowHistory(false)}
+        >
+          <div
+            className="bg-slate-800 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-sm max-h-[70vh] relative animate-slide-in"
+            onClick={(e) => e.stopPropagation()}
           >
-            <AiOutlineInfoCircle size={24} />
-          </button>
+            {/* Handle bar for mobile sheet */}
+            <div className="sm:hidden flex justify-center pt-2 pb-1">
+              <div className="w-10 h-1 bg-slate-600 rounded-full" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+              <h2 className="text-lg font-bold text-white">Word History</h2>
+              <button
+                type="button"
+                className="text-slate-400 active:text-white w-8 h-8 flex items-center justify-center rounded-full"
+                onClick={() => setShowHistory(false)}
+                aria-label="Close"
+              >
+                <span className="text-2xl leading-none">&times;</span>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 overflow-y-auto max-h-[calc(70vh-80px)]">
+              {submittedInputs.length === 0 ? (
+                <p className="text-slate-400 text-center py-8">No words played yet</p>
+              ) : (
+                <div className="space-y-2">
+                  {submittedInputs.map((word, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-center bg-slate-700/50 rounded-lg px-4 py-3"
+                    >
+                      <span className="text-white font-semibold text-base">
+                        {word.toUpperCase()}
+                      </span>
+                      <span className="text-emerald-400 font-bold">
+                        {formatPoints(calculatePoints(word))}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

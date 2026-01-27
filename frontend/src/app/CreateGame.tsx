@@ -1,21 +1,26 @@
-import React from 'react';
-import { useRouter } from 'next/navigation'
-import ButtonStandard from '@/components/ButtonStandard';
-import { generateFourRandomLetters } from '@/utils/randomLetterGenerator';
+"use client";
+
+import React from "react";
+import { useRouter } from "next/navigation";
+import { generateFourRandomLetters } from "@/utils/randomLetterGenerator";
+import { FiPlus } from "react-icons/fi";
 
 const CreateGame: React.FC = () => {
-  const navigate = useRouter();
+  const router = useRouter();
 
   const handleCreateGame = (): void => {
-    const roomCode: string = generateFourRandomLetters(); // Generate unique room code
-    navigate.push(`/room/${roomCode}`); // Navigate to the new game room
+    const roomCode: string = generateFourRandomLetters();
+    router.push(`/room/${roomCode}`);
   };
-  
 
   return (
-    <div>
-      <ButtonStandard onButtonClick={handleCreateGame} buttonName={'Create Game'}/>
-    </div>
+    <button
+      onClick={handleCreateGame}
+      className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-emerald-600 text-white rounded-xl font-semibold active:bg-emerald-500 transition-all"
+    >
+      <FiPlus size={20} />
+      Create Game
+    </button>
   );
 };
 

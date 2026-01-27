@@ -4,19 +4,18 @@ import { AiFillHome } from "react-icons/ai";
 
 const Navbar: React.FC = () => {
   return (
-    <nav >
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center">
-          <Link href="/" className="flex items-center space-x-2">
-            <ZaggleLogoAnimation />
-          </Link>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Link href="/" className="flex items-center gap-2 mr-6">
-            <AiFillHome size={28} className="text-blue-600" />
-            <span className="sr-only">Home</span>
-          </Link>
-        </div>
+    <nav className="bg-slate-800/80 backdrop-blur-sm border-b border-slate-700/50">
+      <div className="flex items-center justify-between px-3 py-2">
+        <Link href="/" className="flex items-center">
+          <ZaggleLogoAnimation />
+        </Link>
+        <Link
+          href="/"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-700/50 hover:bg-slate-600/50 transition-colors"
+          aria-label="Home"
+        >
+          <AiFillHome size={22} className="text-indigo-400" />
+        </Link>
       </div>
     </nav>
   );

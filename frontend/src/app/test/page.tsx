@@ -17,7 +17,7 @@ export default function Test() {
       <br />
       <PlayerGrid />
       <br />
-      <CountdownTimer startTime={undefined} />
+      <CountdownTimer startTime={new Date().toISOString()} />
       <a href="https://www.youtube.com/watch?v=k1eSUsaIugE"> The Bunny</a>
     </>
   );

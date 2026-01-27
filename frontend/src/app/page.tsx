@@ -2,34 +2,46 @@
 import { useState } from "react";
 import CreateGame from "./CreateGame";
 import JoinGame from "./JoinGame";
-import ButtonStandard from "@/components/ButtonStandard";
+import ZaggleLogoAnimation from "@/components/ZaggleLogoAnimation";
+import { FiPlus, FiUsers } from "react-icons/fi";
 
 export default function GameDashboard() {
-  const [showComponent, setShowComponent] = useState<"join" | null>(null);
+  const [showJoin, setShowJoin] = useState(false);
 
   return (
-<div>
-  {/* Center content horizontally, scroll vertically if needed */}
-  <div className="flex flex-col items-center mt-10 mb-10 overflow-auto flex-1 space-y-8">
-    <h1 className="text-3xl font-bold text-gray-800">
-      Welcome to the Game!
-    </h1>
+    <div className="min-h-full flex flex-col items-center justify-center px-4 py-8 bg-slate-900">
+      {/* Logo */}
+      <div className="mb-8">
+        <ZaggleLogoAnimation />
+      </div>
 
-    <div className="flex gap-6">
-      <CreateGame />
-      {showComponent === "join" ? (
-        <JoinGame />
-      ) : (
-        <ButtonStandard
-          onButtonClick={() => setShowComponent("join")}
-          buttonName="Join Game"
-          className="px-6 py-3 bg-green-600 text-white rounded-md shadow-md transition-all duration-300 hover:bg-green-700"
-        />
-      )}
+      {/* Tagline */}
+      <p className="text-slate-400 text-center mb-8 max-w-xs">
+        The fast-paced word game. Create words, score points, beat your friends!
+      </p>
+
+      {/* Action Buttons */}
+      <div className="w-full max-w-xs space-y-3">
+        <CreateGame />
+
+        {showJoin ? (
+          <JoinGame />
+        ) : (
+          <button
+            onClick={() => setShowJoin(true)}
+            className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-slate-700 text-white rounded-xl font-semibold active:bg-slate-600 transition-all"
+          >
+            <FiUsers size={20} />
+            Join Game
+          </button>
+        )}
+      </div>
+
+      {/* Footer */}
+      <p className="mt-12 text-slate-600 text-xs">
+        1 minute rounds. Unlimited fun.
+      </p>
     </div>
-  </div>
-</div>
-
   );
 }
 

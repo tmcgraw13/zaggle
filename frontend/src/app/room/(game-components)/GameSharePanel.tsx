@@ -1,105 +1,133 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import ButtonStandard from "@/components/ButtonStandard"; // Assuming this component is correctly set up
+import { FiCopy, FiCheck, FiShare2 } from "react-icons/fi";
 
 interface GameSharePanelProps {
   gameCode: string;
 }
 
+// Fallback copy function for non-HTTPS contexts
+const copyToClipboard = async (text: string): Promise<boolean> => {
+  // Try modern clipboard API first
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Fall through to fallback
+    }
+  }
+
+  // Fallback for HTTP or older browsers
+  try {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "-9999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    const success = document.execCommand("copy");
+    document.body.removeChild(textArea);
+    return success;
+  } catch {
+    return false;
+  }
+};
+
 const GameSharePanel: React.FC<GameSharePanelProps> = ({ gameCode }) => {
   const [roomLink, setRoomLink] = useState<string>("");
-  const [copyCodeSuccess, setCopyCodeSuccess] = useState<boolean>(false); // Track copy success for Code
-  const [copyLinkSuccess, setCopyLinkSuccess] = useState<boolean>(false); // Track copy success for Link
+  const [copyLinkSuccess, setCopyLinkSuccess] = useState<boolean>(false);
+  const [canShare, setCanShare] = useState<boolean>(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       setRoomLink(`${window.location.origin}/room/${gameCode}`);
+      // Check if Web Share API is available (requires HTTPS on mobile)
+      setCanShare(!!navigator.share && window.isSecureContext);
     }
   }, [gameCode]);
 
-  const handleCopy = (textToCopy: string, type: "code" | "link") => {
-    navigator.clipboard.writeText(textToCopy)
-      .then(() => {
-        if (type === "code") {
-          setCopyCodeSuccess(true);
-          setTimeout(() => setCopyCodeSuccess(false), 2000); // Reset after 2 seconds
-        } else {
-          setCopyLinkSuccess(true);
-          setTimeout(() => setCopyLinkSuccess(false), 2000); // Reset after 2 seconds
-        }
+  const handleCopyLink = async () => {
+    const success = await copyToClipboard(roomLink);
+    if (success) {
+      setCopyLinkSuccess(true);
+      setTimeout(() => setCopyLinkSuccess(false), 2000);
+    } else {
+      alert("Failed to copy. Please copy manually: " + roomLink);
+    }
+  };
 
-      })
-      .catch(() => {
-        // Handle the error if needed
-        alert("Failed to copy");
-      });
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Join my Zaggle game!",
+          text: `Join my word game with code: ${gameCode}`,
+          url: roomLink,
+        });
+      } catch {
+        // User cancelled or share failed
+      }
+    }
   };
 
   return (
-    <div style={styles.container}>
-      <h3 style={styles.header}>Share Your Game Room</h3>
-
-      <div style={styles.item}>
-        <b style={styles.label}>Room Code:</b>
-        <span style={styles.code}>{gameCode}</span>
-        <ButtonStandard
-          onButtonClick={() => handleCopy(gameCode, "code")}
-          buttonName={copyCodeSuccess ? "Copied!" : "Copy Code"}
-          className={`px-6 py-3 ${copyCodeSuccess ? 'bg-green-600' : 'bg-blue-600'} text-white rounded-md shadow-md transition-all duration-300 hover:${copyCodeSuccess ? 'bg-green-700' : 'bg-blue-700'} `}
-        />
+    <div className="bg-slate-800/50 rounded-xl p-4 max-w-sm mx-auto">
+      {/* Room Code */}
+      <div className="text-center mb-4">
+        <label className="text-slate-400 text-xs font-medium block mb-2">
+          Room Code
+        </label>
+        <span className="text-3xl font-bold text-white tracking-widest">
+          {gameCode}
+        </span>
       </div>
 
-      <div style={styles.item}>
-        <b style={styles.label}>Shareable Link:</b>
-        <span style={styles.link}>{roomLink}</span>
-        <ButtonStandard
-          onButtonClick={() => handleCopy(roomLink, "link")}
-          buttonName={copyLinkSuccess ? "Copied!" : "Copy Link"}
-          className={`px-6 py-3 ${copyLinkSuccess ? 'bg-green-600' : 'bg-blue-600'} text-white rounded-md shadow-md transition-all duration-300 hover:${copyLinkSuccess ? 'bg-green-700' : 'bg-blue-700'} `}
-        />
+      {/* Copy Link and Share buttons */}
+      <div className="flex gap-2">
+        <button
+          onClick={handleCopyLink}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-medium transition-all ${
+            copyLinkSuccess
+              ? "bg-emerald-600 text-white"
+              : "bg-slate-700 text-white active:bg-slate-600"
+          }`}
+        >
+          {copyLinkSuccess ? (
+            <>
+              <FiCheck size={18} />
+              Copied!
+            </>
+          ) : (
+            <>
+              <FiCopy size={18} />
+              Copy Link
+            </>
+          )}
+        </button>
+
+        {canShare && (
+          <button
+            onClick={handleShare}
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-medium transition-all bg-indigo-600 text-white active:bg-indigo-500"
+          >
+            <FiShare2 size={18} />
+            Share
+          </button>
+        )}
       </div>
+
+      {/* Show link for easy manual copying on non-secure contexts */}
+      {!canShare && (
+        <p className="text-slate-500 text-xs text-center mt-3 break-all select-all">
+          {roomLink}
+        </p>
+      )}
     </div>
   );
-};
-
-// Inline Styles
-const styles = {
-  container: {
-    padding: "20px",
-    backgroundColor: "white",
-    borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-    width: "100%",
-    maxWidth: "400px",
-    margin: "20px auto",
-    textAlign: "center" as const,
-    color: "black",
-  },
-  header: {
-    fontSize: "1.5rem",
-    marginBottom: "20px",
-    color: "black",
-  },
-  item: {
-    marginBottom: "15px",
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center" as const,
-  },
-  label: {
-    fontSize: "1rem",
-    color: "black",
-  },
-  code: {
-    fontSize: "1.2rem",
-    fontWeight: "bold",
-    margin: "5px 0",
-    color: "black",
-  },
-  link: {
-    fontSize: "1rem",
-    color: "black",
-    wordWrap: "break-word" as const,
-  },
 };
 
 export default GameSharePanel;

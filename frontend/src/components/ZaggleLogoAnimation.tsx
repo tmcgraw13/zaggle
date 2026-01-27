@@ -1,13 +1,26 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Application, Color, Container, Text, TextStyle } from "pixi.js";
+import {
+  Application,
+  Container,
+  Graphics,
+  Text,
+  TextStyle,
+} from "pixi.js";
+
+// Scrabble-style letter point values
+const LETTER_POINTS: Record<string, number> = {
+  Z: 10, A: 1, G: 2, L: 1, E: 1,
+};
 
 const ZaggleLogoAnimation = () => {
   const pixiContainer = useRef<HTMLDivElement | null>(null);
   const appRef = useRef<Application | null>(null);
 
   useEffect(() => {
+    let destroyed = false;
+
     (async () => {
       const app = new Application();
 
@@ -16,7 +29,12 @@ const ZaggleLogoAnimation = () => {
         antialias: true,
       });
 
-      appRef.current = app; // Store the app reference
+      if (destroyed) {
+        app.destroy(true, true);
+        return;
+      }
+
+      appRef.current = app;
 
       if (pixiContainer.current) {
         pixiContainer.current.appendChild(app.canvas);
@@ -26,116 +44,133 @@ const ZaggleLogoAnimation = () => {
       app.stage.addChild(logoContainer);
 
       const letters = ["Z", "A", "G", "G", "L", "E"];
-      const letterSprites = letters.map((letter, index) => {
-        const style = new TextStyle({
-          fontFamily: "Arial",
-          fontSize: 64,
+      const tileSize = 52;
+      const tileGap = 4;
+      const tiles: Container[] = [];
+
+      letters.forEach((letter, index) => {
+        const tileContainer = new Container();
+
+        // Tile background (cream colored, Scrabble style)
+        const tile = new Graphics();
+        tile.roundRect(0, 0, tileSize, tileSize, 6);
+        tile.fill({ color: 0xFAF3E0 }); // Cream/ivory color
+        tile.stroke({ width: 2, color: 0xD4A574 }); // Warm brown border
+        tileContainer.addChild(tile);
+
+        // Inner shadow/highlight for depth
+        const innerHighlight = new Graphics();
+        innerHighlight.roundRect(2, 2, tileSize - 4, tileSize - 4, 4);
+        innerHighlight.stroke({ width: 1, color: 0xFFFFFF, alpha: 0.5 });
+        tileContainer.addChild(innerHighlight);
+
+        // Letter text (dark brown, bold)
+        const letterStyle = new TextStyle({
+          fontFamily: "Georgia, serif",
+          fontSize: 32,
           fontWeight: "bold",
-          fill: 0x000000,
-          stroke: { color: "#ffffff", width: 4 },
-          dropShadow: {
-            color: "#000000",
-            blur: 4,
-            angle: Math.PI / 6,
-            distance: 5,
-          },
+          fill: 0x3D2914, // Dark brown
         });
+        const letterText = new Text({ text: letter, style: letterStyle });
+        letterText.anchor.set(0.5);
+        letterText.x = tileSize / 2;
+        letterText.y = tileSize / 2 - 2;
+        tileContainer.addChild(letterText);
 
-        const text = new Text({ text: letter, style });
-        text.anchor.set(0.5);
-        text.y = 100;
-        logoContainer.addChild(text);
+        // Point value subscript (bottom right)
+        const pointStyle = new TextStyle({
+          fontFamily: "Arial, sans-serif",
+          fontSize: 11,
+          fontWeight: "bold",
+          fill: 0x5D4E37, // Medium brown
+        });
+        const pointText = new Text({
+          text: String(LETTER_POINTS[letter] || 1),
+          style: pointStyle,
+        });
+        pointText.anchor.set(1, 1);
+        pointText.x = tileSize - 5;
+        pointText.y = tileSize - 3;
+        tileContainer.addChild(pointText);
 
-        const animation = () => {
-          text.y =
-            app.canvas.height / 2 +
-            Math.sin(app.ticker.lastTime / 100 + index) * 18;
-          text.tint = new Color([
-            Math.abs(Math.sin(app.ticker.lastTime / 1000 + index * 0.5)),
-            Math.abs(Math.cos(app.ticker.lastTime / 1000 + index * 0.5)),
-            1,
-          ]).toNumber();
-          text.rotation = Math.sin(app.ticker.lastTime / 500 + index) * 0.1;
-        };
+        // Position tile
+        tileContainer.x = index * (tileSize + tileGap);
+        tileContainer.y = 0;
 
-        app.ticker.add(animation);
-        return text;
+        // Store original position for animation
+        (tileContainer as any).baseY = 0;
+        (tileContainer as any).index = index;
+
+        logoContainer.addChild(tileContainer);
+        tiles.push(tileContainer);
       });
 
-      let xOffset = 50;
-      letterSprites.forEach((letter) => {
-        letter.x = xOffset;
-        xOffset += letter.width + 15;
-      });
+      const totalWidth = letters.length * (tileSize + tileGap) - tileGap;
+      const totalHeight = tileSize;
 
-      const totalWidth = xOffset - 15;
-
-      // Function to resize and reposition the logo based on container size
-      const positionLogoCenter = () => {
-        if (pixiContainer.current && appRef.current) {
-          const parentWidth = pixiContainer.current.clientWidth;
-          const parentHeight = pixiContainer.current.clientHeight;
-
-          // Calculate the scaling factor based on the smaller dimension
-          const scaleFactor = Math.min(
-            parentWidth / totalWidth,
-            parentHeight / 150
-          ); // 150 is the height for reference
-
-          // Scale the logo container
-          logoContainer.scale.set(scaleFactor);
-
-          // Center the logo horizontally and vertically
-          logoContainer.x = (parentWidth - totalWidth * scaleFactor) / 2;
-          logoContainer.y =
-            (parentHeight - logoContainer.height * scaleFactor) / 2;
-        }
+      // Subtle wave animation
+      const animate = () => {
+        tiles.forEach((tile, i) => {
+          const time = app.ticker.lastTime / 800;
+          tile.y = (tile as any).baseY + Math.sin(time + i * 0.5) * 3;
+          tile.rotation = Math.sin(time + i * 0.5) * 0.02;
+        });
       };
 
-      // Resize logic
+      app.ticker.add(animate);
+
+      // Resize and center
       const resizeCanvas = () => {
         if (pixiContainer.current && appRef.current) {
           const parentWidth = pixiContainer.current.clientWidth;
           const parentHeight = pixiContainer.current.clientHeight;
 
-          // Resize the PixiJS canvas to match the parent container size
           app.renderer.resize(parentWidth, parentHeight);
-          positionLogoCenter(); // Reposition and scale the logo after resizing
+
+          const scaleFactor = Math.min(
+            parentWidth / totalWidth,
+            parentHeight / totalHeight
+          ) * 0.9;
+
+          logoContainer.scale.set(scaleFactor);
+          logoContainer.x = (parentWidth - totalWidth * scaleFactor) / 2;
+          logoContainer.y = (parentHeight - totalHeight * scaleFactor) / 2;
         }
       };
 
       resizeCanvas();
-
-      app.ticker.add(() => {
-        positionLogoCenter();
-      });
-
       window.addEventListener("resize", resizeCanvas);
 
       return () => {
         window.removeEventListener("resize", resizeCanvas);
-        app.stage.removeChildren();
-        app.destroy(true, true);
       };
     })();
+
+    return () => {
+      destroyed = true;
+      if (appRef.current) {
+        appRef.current.stage.removeChildren();
+        appRef.current.destroy(true, true);
+        appRef.current = null;
+      }
+    };
   }, []);
 
   return (
     <div
-      className="border-4 border-dashed  rounded-lg"
       style={{
         padding: 0,
         margin: 0,
-        height: "75px", // Match the height of the parent container
-        width: "200px", // Make the width dynamic, it will take the full width of the parent
+        height: "56px",
+        width: "220px",
       }}
     >
       <div
         ref={pixiContainer}
         style={{
-          height: "100%", // Make it fit within the navbar
+          height: "100%",
           width: "100%",
-          overflow: "hidden", // Hide overflow
+          overflow: "hidden",
         }}
       />
     </div>

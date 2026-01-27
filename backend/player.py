@@ -2,23 +2,24 @@
 # score
 # word history
 
-class Player: 
+class Player:
 
-    def __init__(self,username: str, isLeader = False): 
+    def __init__(self,username: str, isLeader = False, icon = "dog"):
 
         self.username = username
-        self.score = 0 
+        self.score = 0
         self.word_history= []
         self.hand = []
         self.seq_index = 0
         self.isLeader: bool = isLeader
+        self.icon: str = icon
 
     @classmethod
     def from_dict(cls, data):
         """
         Creates a Player instance from a dictionary.
         """
-        player = cls(data['username'], data.get('isLeader', False))
+        player = cls(data['username'], data.get('isLeader', False), data.get('icon', 'dog'))
         player.score = data.get('score', 0)
         player.word_history = data.get('word_history', [])
         player.hand = data.get('hand', [])
@@ -35,7 +36,8 @@ class Player:
             'hand': self.hand,
             'word_history': self.word_history,
             'seq_index': self.seq_index,
-            'isLeader': self.isLeader
+            'isLeader': self.isLeader,
+            'icon': self.icon
         }
 
     def get_username(self):
@@ -67,10 +69,10 @@ class Player:
         # ensuring that it only removes each letter once and in the correct order.
         self.word_history.append(word_played)
         print("Before cleaning hand:", self.hand)
-        
+
         temp_hand = self.hand[:]  # Copy of the hand for ordered removal
-        
-        for letter in word_played:
+
+        for letter in word_played.upper():  # Convert to uppercase to match hand
             if letter in temp_hand:
                 temp_hand.remove(letter)  # Remove the exact letter
             elif "_" in temp_hand:

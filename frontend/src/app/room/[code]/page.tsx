@@ -1,43 +1,77 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import GameRoom from "../(game-components)/GameRoom";
 import socket from "@/utils/socket";
 import PlayerNameModal from "../../../components/PlayerNameModal";
+import ProfileEditor from "../(game-components)/ProfileEditor";
+import { IconType } from "@/utils/randomIcon";
 
 export default function RoomCode({ params }: { params: { code: string } }) {
   const [userName, setUserName] = useState<string | null>(null);
+  const [userIcon, setUserIcon] = useState<IconType>("dog");
+  const [showProfileEditor, setShowProfileEditor] = useState(false);
   const roomCode = params.code;
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false); // Controls the visibility of the name modal
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const joinGame = () => {
-    const gameCode = roomCode;
-    const playerName = userName;
-    socket.emit("join_game", { gameCode, playerName });
-  };
+  const joinGame = useCallback((name: string, icon: IconType) => {
+    socket.emit("join_game", { gameCode: roomCode, playerName: name, playerIcon: icon });
+  }, [roomCode]);
 
-  // Fetch userName from localStorage on component mount
+  // Fetch userName and userIcon from localStorage on component mount
   useEffect(() => {
     const storedUserName = localStorage.getItem("userName");
+    const storedUserIcon = localStorage.getItem("userIcon") as IconType | null;
+
     if (storedUserName) {
       setUserName(storedUserName);
+      if (storedUserIcon) {
+        setUserIcon(storedUserIcon);
+      }
     } else {
-      setIsModalOpen(true); // Open the modal if no userName is found
+      setIsModalOpen(true);
     }
-  }, []); // Only run this effect once on mount
+  }, []);
 
+  // Join game when userName is set
   useEffect(() => {
-    // Check if both userName and roomLink are set before joining the game
     if (userName && roomCode) {
-      joinGame();
+      joinGame(userName, userIcon);
     }
-  }, [userName]); // Run when userName
+  }, [userName, roomCode, joinGame]);
 
-  // Save the username in localStorage
+  // Save the username and icon in localStorage
   const handleSetUserName = (name: string) => {
     setUserName(name);
-    localStorage.setItem("userName", name); // Persist the username
-    setIsModalOpen(false); // Close the modal after setting the username
+    localStorage.setItem("userName", name);
+  };
+
+  const handleSetUserIcon = (icon: IconType) => {
+    setUserIcon(icon);
+    localStorage.setItem("userIcon", icon);
+    setIsModalOpen(false);
+  };
+
+  // Handle profile edit (name and/or icon change)
+  const handleProfileSave = (newName: string, newIcon: IconType) => {
+    const nameChanged = newName !== userName;
+    const iconChanged = newIcon !== userIcon;
+
+    if (!nameChanged && !iconChanged) return;
+
+    // Update local state
+    setUserName(newName);
+    localStorage.setItem("userName", newName);
+    setUserIcon(newIcon);
+    localStorage.setItem("userIcon", newIcon);
+
+    // Use update_profile to preserve host status
+    socket.emit("update_profile", {
+      gameCode: roomCode,
+      oldUsername: userName,
+      newUsername: newName,
+      newIcon: newIcon,
+    });
   };
 
   return (
@@ -45,16 +79,30 @@ export default function RoomCode({ params }: { params: { code: string } }) {
       {isModalOpen && !userName ? (
         <PlayerNameModal
           setUserName={handleSetUserName}
+          setUserIcon={handleSetUserIcon}
           closeModal={() => setIsModalOpen(false)}
         />
       ) : (
-        // ensure this page fills the available space from layout and avoids creating its own vertical scroll
         <>
           {userName && roomCode ? (
-            // keep GameRoom inside a flex child that can size to the parent
-              <GameRoom userName={userName} gameCode={roomCode} />
+            <>
+              <GameRoom
+                userName={userName}
+                gameCode={roomCode}
+                userIcon={userIcon}
+                onEditProfile={() => setShowProfileEditor(true)}
+              />
+              {showProfileEditor && (
+                <ProfileEditor
+                  currentName={userName}
+                  currentIcon={userIcon}
+                  onSave={handleProfileSave}
+                  onClose={() => setShowProfileEditor(false)}
+                />
+              )}
+            </>
           ) : (
-            <div>
+            <div className="flex items-center justify-center h-full text-white">
               Loading...
             </div>
           )}

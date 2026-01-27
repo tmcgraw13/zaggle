@@ -7,17 +7,31 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+
+  /* Zaggle theme colors */
+  --color-primary: #4F46E5;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-surface: #1E293B;
+  --color-bg: #0F172A;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --background-start-rgb: 15, 23, 42;
+    --background-end-rgb: 30, 41, 59;
   }
 }
 
 /* Page background + foreground */
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
@@ -28,11 +42,12 @@ body {
     rgb(var(--background-start-rgb));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  position: fixed;
+  width: 100%;
 }
 
 /* Small utility additions */
 @layer utilities {
-  /* Use only where supported; keeps intent explicit */
   .text-balance {
     text-wrap: balance;
   }
@@ -52,19 +67,224 @@ body {
   animation: wiggle 0.2s infinite;
 }
 
-/* Hide native scrollbars visually while preserving scroll behavior */
-.scrollable {
-  -webkit-overflow-scrolling: touch; /* momentum on iOS */
-  overscroll-behavior: contain;      /* prevent parent/viewport bounce while scrolling this element */
-  touch-action: pan-y;               /* allow vertical pan inside this element */
+/* Shake animation for invalid words */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
 }
 
-/* Keep the no-scrollbar helper but only visually hide scrollbars,
-   it won't affect touch/momentum behavior. */
+/* Pop-in animation for new tiles */
+@keyframes pop-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.animate-pop-in {
+  animation: pop-in 0.15s ease-out;
+}
+
+/* Float up animation for score display */
+@keyframes float-up {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+}
+.animate-float-up {
+  animation: float-up 0.8s ease-out forwards;
+}
+
+/* Slide in animation */
+@keyframes slide-in {
+  0% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-slide-in {
+  animation: slide-in 0.22s ease-out;
+}
+
+/* Pulse glow animation */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(79, 70, 229, 0);
+  }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Confetti animation */
+@keyframes confetti {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+.animate-confetti {
+  animation: confetti 1s ease-out forwards;
+}
+
+/* Score pop animation */
+@keyframes score-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-score-pop {
+  animation: score-pop 0.3s ease-out;
+}
+
+/* Hide native scrollbars visually while preserving scroll behavior */
+.scrollable {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+/* Keep the no-scrollbar helper but only visually hide scrollbars */
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Tile styles */
+.tile {
+  border-radius: 1rem;
+  background-color: #FEF3C7;
+  border: 3px solid #F59E0B;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.tile:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+.tile:active,
+.tile.dragging {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  transform: scale(1.1) rotate(2deg);
+}
+
+/* Valid word glow */
+.valid-glow {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+/* Invalid word shake */
+.invalid-shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+/* Game background gradient */
+.game-bg {
+  background: linear-gradient(to bottom, #0F172A, #1E293B);
+}
+
+/* Leaderboard highlight animation */
+@keyframes highlight-score {
+  0% {
+    background-color: rgba(16, 185, 129, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+.highlight-score {
+  animation: highlight-score 1s ease-out;
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: #4F46E5;
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: background-color 150ms;
+}
+.btn-primary:hover {
+  background-color: #4338CA;
+}
+.btn-primary:active {
+  background-color: #3730A3;
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-success {
+  background-color: #10B981;
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: background-color 150ms;
+}
+.btn-success:hover {
+  background-color: #059669;
+}
+.btn-success:active {
+  background-color: #047857;
+}
+.btn-success:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: #334155;
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: background-color 150ms;
+}
+.btn-secondary:hover {
+  background-color: #1E293B;
+}
+.btn-secondary:active {
+  background-color: #0F172A;
+}
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
